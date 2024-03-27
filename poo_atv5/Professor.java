@@ -1,13 +1,13 @@
-public class Professor extends Usuario implements Interface{
+public class Professor extends Usuario implements Interface_prof{
   //2 metodos de usuário
   @Override
   public void Tenho_acesso(){
     System.out.println("Tenho acesso ao Sistema de professor \n");
   }
-   @Override 
-    public void Tem_matricula(){
-      System.out.println("Tenho matrícula como professor ! \n");
-  }
+//   @Override 
+//    public void Tem_matricula(){
+//      System.out.println("Tenho matrícula como professor ! \n");
+ // }
 
 
 
@@ -16,21 +16,10 @@ public class Professor extends Usuario implements Interface{
   public void Aplicar_prova(){
     System.out.println("Estão lascados, prova vai torar ! \n");
   }
-  @Override
+//':wq
+  //  @Override
   public void Suspender_aluno(String nome){
-    System.out.println("Está suspenso %s",nome)
+    System.out.printf("Está suspenso %s",nome);
   }
 
 }
-
-/*
- * public interface Professor{
-  private void Aplicar_prova();
-
-  default public void Suspender_aluno(){
-    System.out.println("Você está suspenso!!! \n");
-  }
-
-}
-
-*/
