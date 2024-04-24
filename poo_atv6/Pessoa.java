@@ -1,4 +1,7 @@
-import java.util.Functional.*;
+import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class Pessoa{
   public String nome;
@@ -12,15 +15,20 @@ public class Pessoa{
 
   //sobrescrevendo os métodos
   @Override
-  public String to_string(){
-    return this.nome
+  public String toString(){
+    return this.nome;
   }
 
   @Override
-  public boolean equals(String nome , int idade){
-    if(nome.Length() == idade){
+  public boolean equals(Object obj){
+    if(this == obj){
       return true;
-    }else{return false;}
+    }
+    if(obj == null || getClass() != obj.getClass()){
+      return false;
+    }
+    Pessoa pessoa = (Pessoa) obj;
+    return idade == pessoa.idade && nome.equals(pessoa.nome);
   }
 }
 

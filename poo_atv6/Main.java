@@ -1,4 +1,5 @@
-import java.util.Functional.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main{
   
@@ -7,6 +8,22 @@ public class Main{
 
     pessoas.add(new Pessoa("Rafael" , 19));
 
+    pessoas.add(new Pessoa("Ana", 25));
+    pessoas.add(new Pessoa("Pedro", 30));
+    pessoas.add(new Pessoa("Maria", 40));
+    pessoas.add(new Pessoa("João", 35));
+
+    System.out.println("Lista após adição de elementos:");
+    pessoas.forEach(p -> System.out.println(p.toString()));
+
+    pessoas.remove(2);
+    System.out.println("\nLista após remoção por índice:");
+    pessoas.forEach(p -> System.out.println(p.toString()));
+
+    Pessoa pessoaToRemove = new Pessoa("Maria", 40);
+    pessoas.remove(pessoaToRemove);
+    System.out.println("\nLista após remoção por objeto:");
+    pessoas.forEach(p -> System.out.println(p.toString()));
     //continua dps.
   }
 }
