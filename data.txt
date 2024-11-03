@@ -1,0 +1,65 @@
+MapReduce é um modelo de programação que permite o processamento de grandes quantidades de dados.
+Este modelo usa duas funções principais: Map e Reduce.
+Map transforma os dados em pares de chave-valor.
+Reduce combina esses pares de chave-valor para produzir um resultado consolidado.
+MapReduce é amplamente utilizado em computação distribuída.
+MapReduce é um modelo de programação que permite o processamento de grandes quantidades de dados.
+Este modelo usa duas funções principais: Map e Reduce.
+Map transforma os dados em pares de chave-valor.
+Reduce combina esses pares de chave-valor para produzir um resultado consolidado.
+MapReduce é amplamente utilizado em computação distribuída.
+MapReduce é um modelo de programação que permite o processamento de grandes quantidades de dados.
+Este modelo usa duas funções principais: Map e Reduce.
+Map transforma os dados em pares de chave-valor.
+Reduce combina esses pares de chave-valor para produzir um resultado consolidado.
+MapReduce é amplamente utilizado em computação distribuída.
+MapReduce é um modelo de programação que permite o processamento de grandes quantidades de dados.
+Este modelo usa duas funções principais: Map e Reduce.
+Map transforma os dados em pares de chave-valor.
+Reduce combina esses pares de chave-valor para produzir um resultado consolidado.
+MapReduce é amplamente utilizado em computação distribuída.
+MapReduce é um modelo de programação que permite o processamento de grandes quantidades de dados.
+Este modelo usa duas funções principais: Map e Reduce.
+Map transforma os dados em pares de chave-valor.
+Reduce combina esses pares de chave-valor para produzir um resultado consolidado.
+MapReduce é amplamente utilizado em computação distribuída.
+MapReduce é um modelo de programação que permite o processamento de grandes quantidades de dados.
+Este modelo usa duas funções principais: Map e Reduce.
+Map transforma os dados em pares de chave-valor.
+Reduce combina esses pares de chave-valor para produzir um resultado consolidado.
+MapReduce é amplamente utilizado em computação distribuída.
+MapReduce é um modelo de programação que permite o processamento de grandes quantidades de dados.
+Este modelo usa duas funções principais: Map e Reduce.
+Map transforma os dados em pares de chave-valor.
+Reduce combina esses pares de chave-valor para produzir um resultado consolidado.
+MapReduce é amplamente utilizado em computação distribuída.
+MapReduce é um modelo de programação que permite o processamento de grandes quantidades de dados.
+Este modelo usa duas funções principais: Map e Reduce.
+Map transforma os dados em pares de chave-valor.
+Reduce combina esses pares de chave-valor para produzir um resultado consolidado.
+MapReduce é amplamente utilizado em computação distribuída.
+MapReduce é um modelo de programação que permite o processamento de grandes quantidades de dados.
+Este modelo usa duas funções principais: Map e Reduce.
+Map transforma os dados em pares de chave-valor.
+Reduce combina esses pares de chave-valor para produzir um resultado consolidado.
+MapReduce é amplamente utilizado em computação distribuída.
+MapReduce é um modelo de programação que permite o processamento de grandes quantidades de dados.
+Este modelo usa duas funções principais: Map e Reduce.
+Map transforma os dados em pares de chave-valor.
+Reduce combina esses pares de chave-valor para produzir um resultado consolidado.
+MapReduce é amplamente utilizado em computação distribuída.
+MapReduce é um modelo de programação que permite o processamento de grandes quantidades de dados.
+Este modelo usa duas funções principais: Map e Reduce.
+Map transforma os dados em pares de chave-valor.
+Reduce combina esses pares de chave-valor para produzir um resultado consolidado.
+MapReduce é amplamente utilizado em computação distribuída.
+MapReduce é um modelo de programação que permite o processamento de grandes quantidades de dados.
+Este modelo usa duas funções principais: Map e Reduce.
+Map transforma os dados em pares de chave-valor.
+Reduce combina esses pares de chave-valor para produzir um resultado consolidado.
+MapReduce é amplamente utilizado em computação distribuída.
+MapReduce é um modelo de programação que permite o processamento de grandes quantidades de dados.
+Este modelo usa duas funções principais: Map e Reduce.
+Map transforma os dados em pares de chave-valor.
+Reduce combina esses pares de chave-valor para produzir um resultado consolidado.
+MapReduce é amplamente utilizado em computação distribuída.
