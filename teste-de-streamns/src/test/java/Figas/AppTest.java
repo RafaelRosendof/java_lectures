@@ -8,7 +8,7 @@ package com.Figas;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse; //testar sem org.junit
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
