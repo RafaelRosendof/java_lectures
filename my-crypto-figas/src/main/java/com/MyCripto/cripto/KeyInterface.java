@@ -6,6 +6,18 @@ package main.java.com.MyCripto.cripto;
  * 
  */
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.security.spec.KeySpec;
+import java.util.Base64;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
 import java.util.List;
 import org.bitcoinj.crypto.MnemonicException;
 //import  main.java.com.MyCripto.cripto.WalletModel;
@@ -34,5 +46,12 @@ public interface KeyInterface {
 
 
     // AES 
+
+    public String Encrypt(String text , SecretKey key);
+    public String Decrypt(String encrypted , SecretKey key);
+    public SecretKey generateSecretKey(String password , String salt);
+    private static String bytesToHex(byte[] bytes);
+
+
 
 }
