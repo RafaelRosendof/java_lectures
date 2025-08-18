@@ -1,20 +1,19 @@
-
-
 public class Transaction implements Comparable<Transaction>{
 
-    private String to;
-    private String from;
-    private double amount;
-    private double fee;
+    private final String from;
+    private final String to;
+    private final double value;
+    private final double fee;
+    private final long timestamp;
 
 
-    public Transaction(String to, String from, double amount, double fee) {
-        this.to = to;
+    public Transaction(String from, String to, double value, double fee) {
         this.from = from;
-        this.amount = amount;
+        this.to = to;
+        this.value = value;
         this.fee = fee;
+        this.timestamp = System.nanoTime(); // usado para desempate
     }
-
 
     public String getTo() {
         return to;
@@ -22,19 +21,26 @@ public class Transaction implements Comparable<Transaction>{
     public String getFrom() {
         return from;
     }
-    public double getAmount() {
-        return amount;
+    public double getValue() {
+        return value;
     }
     public double getFee() {
         return fee;
     }   
+
     @Override
-    public String toString() {
-        return "Transaction [to=" + to + ", from=" + from + ", amount=" + amount + ", fee=" + fee + "]";
+    public int compareTo(Transaction other) {
+        
+        int feeCompare = Double.compare(other.fee, this.fee);
+        if (feeCompare != 0) return feeCompare;
+
+        return Long.compare(this.timestamp, other.timestamp);
     }
 
     @Override
-    public int compareTo(Transaction o) {
-        return Double.compare(o.fee , this.fee);
+    public String toString() {
+        return String.format("Tx[from=%s, to=%s, value=%.2f, fee=%.2f]", from, to, value, fee);
     }
+
+
 }
