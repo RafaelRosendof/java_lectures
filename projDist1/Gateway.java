@@ -4,6 +4,33 @@ import java.util.concurrent.*;
 
 public class Gateway {
 
+    /*
+     * 
+     * Tenho que implementar aqui um padrão heartbeat para o gateway
+     * Assim, o getway vai checar periodicamente se o block está vivo
+     * Se não estiver, o gateway deve iniciar um novo block
+     * 
+     * Assim que o minerador estiver pronto, ele avisa o gateway
+     * E o gateway passa a usar esse minerador isso vai ser guardado com um Map<String , ComponentInfo>
+     * Onde ComponentInfo tem o IP, a porta e o timestamp do último heartbeat
+     * 
+     * Implementar uma função que recebe o heartbeat do minerador 
+     * 
+     * 
+    Hoje, o Gateway executa tudo dentro dele (mempool + miner).
+
+    Mas a arquitetura pede que ele seja somente o roteador.
+
+    Ou seja:
+
+    O Gateway não deveria minerar nem guardar a mempool.
+
+    Ele só deveria receber requisições e repassar para os componentes corretos (que estão rodando como instâncias separadas).
+
+    
+     */
+
+
     private int port;
     public ConcurrentLinkedQueue<Transaction> mempool = new ConcurrentLinkedQueue<>();
 
@@ -63,13 +90,7 @@ public class Gateway {
                 }
                 String bodyString = new String(body, 0, readSoFar);
 
-                /* 
-                char[] body = new char[contentLen];
-                in.read(body, 0, contentLen);
-                // ler do corpo da requisição um JSON  
-                // JSON {"from": "W1", "to": "W2", "value": 10.0, "fee": 1.0}
-                String bodyString = new String(body);
-                */
+                
 
                 String[] partsBody = bodyString.replace("{", "").replace("}", "").replace("\"", "").split(",");
                 String from = partsBody[0].split(":")[1].trim();
