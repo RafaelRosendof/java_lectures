@@ -1,6 +1,6 @@
 public enum CommunicationType {
     UDP,
-    HTTP,
+    //HTTP,
     TCP,
-    GRPC
+    //GRPC
 }

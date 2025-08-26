@@ -6,15 +6,42 @@ public class Block {
     private static final int THREAD_POOL_SIZE = 10;
     private static final int NUM_TX = 50;
 
+    private final long id;
+    private final List<Transaction> transactions;
+    private final long timestamp;
 
-    public Block() {
-        // Construtor vazio
+    public Block(long id, List<Transaction> transactions) {
+        this.id = id;
+        this.transactions = transactions; // A lista já vem ordenada do Miner
+        this.timestamp = System.currentTimeMillis();
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public List<Transaction> getTransactions() {
+        return transactions;
     }
 
     public void addTransactionToMempool(ConcurrentLinkedQueue<Transaction> mempool, Transaction tx) {
         mempool.add(tx);
     }
 
+    public List<String> printaBlockList(List<PriorityBlockingQueue<Transaction>> blockchains) {
+        //vai ser iterativo mesmo
+        List<String> result = new ArrayList<>();
+        for (int i = 0 ; i < blockchains.size(); i++) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Blockchain ").append(i + 1).append(":\n");
+            PriorityBlockingQueue<Transaction> blockchain = blockchains.get(i);
+            for (Transaction tx : blockchain) {
+                sb.append(tx).append("\n");
+            }
+            result.add(sb.toString());
+        }
+        return result;
+    }
 
     public String printBlockChain(ConcurrentLinkedQueue<Transaction> mempool) {
         StringBuilder sb = new StringBuilder();
@@ -38,41 +65,5 @@ public class Block {
         return sb.toString();
     }
 
-    /* 
-    public static void main(String[] args) throws InterruptedException {
-        ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-
-        ConcurrentLinkedQueue<Transaction> mempool = new ConcurrentLinkedQueue<>();
-        PriorityBlockingQueue<Transaction> minerQueue = new PriorityBlockingQueue<>();
-
-        // Threads simulando usuários enviando transações
-        for (int i = 0; i < NUM_TX; i++) {
-            int id = i;
-            executor.submit(() -> {
-                Transaction tx = new Transaction(
-                    "Wallet" + id,
-                    "Wallet" + (id + 1),
-                    Math.random() * 10,
-                    1 + Math.random() * 5  // fee aleatória
-                );
-                mempool.add(tx);
-                System.out.println("Nova TX recebida: " + tx);
-            });
-        }
-
-        executor.shutdown();
-        executor.awaitTermination(5, TimeUnit.SECONDS);
-
-        // Minerador consome da mempool e joga no heap
-        while (!mempool.isEmpty()) {
-            minerQueue.add(mempool.poll());
-        }
-
-        System.out.println("\n--- Ordem final de mineração (maior fee primeiro) ---");
-        while (!minerQueue.isEmpty()) {
-            System.out.println(minerQueue.poll());
-        }
-    }
-
-    */
+    
 }

@@ -1,0 +1,71 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "LocalHostDemo",
+            "request": "launch",
+            "mainClass": "imd.ufrn.LocalHostDemo",
+            "projectName": "Aula UDP_478f94fd"
+        },
+        {
+            "type": "java",
+            "name": "LocalHostDemo2",
+            "request": "launch",
+            "mainClass": "imd.ufrn.LocalHostDemo2",
+            "projectName": "Aula UDP_478f94fd"
+        },
+        {
+            "type": "java",
+            "name": "UDPClient",
+            "request": "launch",
+            "mainClass": "imd.ufrn.UDPClient",
+            "projectName": "Aula UDP_478f94fd"
+        },
+        {
+            "type": "java",
+            "name": "UDPClientBanco",
+            "request": "launch",
+            "mainClass": "imd.ufrn.UDPClientBanco",
+            "projectName": "Aula UDP_478f94fd"
+        },
+        {
+            "type": "java",
+            "name": "UDPClientMsg",
+            "request": "launch",
+            "mainClass": "imd.ufrn.UDPClientMsg",
+            "projectName": "Aula UDP_478f94fd"
+        },
+        {
+            "type": "java",
+            "name": "UDPServer",
+            "request": "launch",
+            "mainClass": "imd.ufrn.UDPServer",
+            "projectName": "Aula UDP_478f94fd"
+        },
+        {
+            "type": "java",
+            "name": "UDPServerBanco",
+            "request": "launch",
+            "mainClass": "imd.ufrn.UDPServerBanco",
+            "projectName": "Aula UDP_478f94fd"
+        },
+        {
+            "type": "java",
+            "name": "UDPServerMsg",
+            "request": "launch",
+            "mainClass": "imd.ufrn.UDPServerMsg",
+            "projectName": "Aula UDP_478f94fd"
+        }
+    ]
+}

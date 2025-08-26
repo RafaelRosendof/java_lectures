@@ -3,21 +3,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/*
- * Classe responsável por gerenciar uma abstração entre o gateway e os componentes. N componentes vão herdar dessa classe aqui
- */
 
 public abstract class BaseComponent {
 
     protected final int componentPort;
-    protected final String gatwayHost;
+    protected final String gatewayHost;
     protected final int gatewayPort;
     protected final CommunicationType commType;
     protected final ComponentType componentType;
 
     private ComponentServer server;
-    private final ComponentClient client;
+    private final ComponentClient clientToGateway;
     private final ScheduledExecutorService heartbeatScheduler = Executors.newSingleThreadScheduledExecutor();
+
+    private static final int HEARTBEAT_INTERVAL_SECONDS = 10; // Menos frequente
+    private static final int HEARTBEAT_TIMEOUT_MS = 2000;     // Timeout menor
+    private static final int MAX_HEARTBEAT_RETRIES = 2;       // Menos retries
+
 
     public BaseComponent(int componentPort, String gatewayHost, int gatewayPort, CommunicationType commType, ComponentType componentType) {
         this.componentPort = componentPort;
@@ -39,26 +41,71 @@ public abstract class BaseComponent {
         startHeartbeat();
     }
 
-    private void registerWithGateway() throws Exception {
-        // protocolo -> registra o meu ip + porta + tipo UDP, grpc, http
-        String myIp = InetAddress.getLocalHost().getHostAddress(); // talvez coloque o docker dps aqui
-        String request = String.format("REGISTER|%s|%d|%s", myIp, componentPort, componentType);
-        String response = clientToGateway.send(gatewayHost, gatewayPort, request);
-        System.out.printf("[%s] Resposta do registro no Gateway: %s\n", componentType, response);
 
+    private void registerWithGateway() throws Exception {
+        String myIp = InetAddress.getLocalHost().getHostAddress();
+        String request = String.format("REGISTER|%s|%d|%s", myIp, componentPort, componentType);
+        
+        // Retry na registração
+        Exception lastException = null;
+        for (int i = 0; i < 3; i++) {
+            try {
+                String response = clientToGateway.send(gatewayHost, gatewayPort, request);
+                System.out.printf("[%s] Resposta do registro no Gateway: %s\n", componentType, response);
+                return; // Sucesso
+            } catch (Exception e) {
+                lastException = e;
+                System.err.printf("[%s] Falha na registração (tentativa %d): %s\n", componentType, i+1, e.getMessage());
+                if (i < 2) Thread.sleep(1000);
+            }
+        }
+        throw lastException;
     }
+
+    
 
     private void startHeartbeat() {
         heartbeatScheduler.scheduleAtFixedRate(() -> {
+            sendHeartbeatWithRetry();
+        }, HEARTBEAT_INTERVAL_SECONDS, HEARTBEAT_INTERVAL_SECONDS, TimeUnit.SECONDS);
+    }
+
+    private void sendHeartbeatWithRetry() {
+        for (int i = 1; i <= MAX_HEARTBEAT_RETRIES; i++) {
             try {
                 String myIp = InetAddress.getLocalHost().getHostAddress();
-                // Protocolo: HEARTBEAT|MEU_IP|MINHA_PORTA|MEU_TIPO
                 String request = String.format("HEARTBEAT|%s|%d|%s", myIp, componentPort, componentType);
-                clientToGateway.send(gatewayHost, gatewayPort, request);
+                
+                // Usa timeout customizado se disponível
+                if (clientToGateway instanceof UDPClient) {
+                    ((UDPClient) clientToGateway).sendWithRetry(gatewayHost, gatewayPort, request, HEARTBEAT_TIMEOUT_MS, 1);
+                } else {
+                    clientToGateway.send(gatewayHost, gatewayPort, request);
+                }
+                
+                // sucesso
+                if (i > 1) {
+                    System.out.printf("[%s] Heartbeat recuperado na tentativa %d\n", componentType, i);
+                }
+                return;
+                
             } catch (Exception e) {
-                System.err.printf("[%s] Falha ao enviar heartbeat: %s\n", componentType, e.getMessage());
+                if (i == MAX_HEARTBEAT_RETRIES) {
+                    System.err.printf("[%s] Falha ao enviar heartbeat após %d tentativas: %s\n", 
+                                     componentType, MAX_HEARTBEAT_RETRIES, e.getMessage());
+                } else {
+                    // Não loga 
+                }
+                
+                // Pequena pausa entre tentativas
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
             }
-        }, 5, 5, TimeUnit.SECONDS); // Envia a cada 5 segundos
+        }
     }
 
     // cada componente vai implementar o handling de requs

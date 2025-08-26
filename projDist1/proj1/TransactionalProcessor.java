@@ -1,17 +1,29 @@
 //Componente A -> faz apenas a transação Stateless
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TransactionalProcessor extends BaseComponent {
 
     private final ConcurrentLinkedQueue<Transaction> mempool = new ConcurrentLinkedQueue<>();
+    private final ComponentClient clientToGateway;
 
-    public TransactionalProcessor(int componentPort, String gatewayHost, int gatewayPort, CommunicationType commType) {
-        super(componentPort, gatewayHost, gatewayPort, commType, ComponentType.TRANSACTIONAL_PROCESSOR);
+    // não quero mais de uma thread aqui 
+    private final AtomicBoolean isMiningInProgress = new AtomicBoolean(false);
+
+    public TransactionalProcessor(int port, String gatewayHost, int gatewayPort, CommunicationType commType, ComponentType componentType) {
+        super(port, gatewayHost, gatewayPort, commType, componentType);
+        this.clientToGateway = CommunicationFactory.createClient(commType);
     }
 
+    // Esse aqui tem que chamar o Miner mine, o cliente não pode fazer requisição para minerar o nodo 
+    // Caso o bloco tenha tamanho de 300 aí chama o mine do Mine 
+    // 
+
     @Override
-    protected RequestHandler gRequestHandler() {
+    protected RequestHandler getRequestHandler() {
         return (request) -> {
 
             String[] parts = request.split("\\|", 2);
@@ -22,37 +34,97 @@ public class TransactionalProcessor extends BaseComponent {
                 return handleAddTransaction(payload);
             }
 
+            else if("GET_MEMPOOL".equals(command)) {
+                return getMempoolSnapshot();
+            }
+
             return "ERRO: Comando desconhecido";
         };
     }
 
-    private String handleAddTransaction(String jsonPayload) {
+    private String getMempoolSnapshot() {
+        System.out.println("[TransactionProcessor] Solicitada cópia da mempool. Tamanho atual: " + mempool.size());
+    
+        List<Transaction> transactionsToMine = new ArrayList<>();
+        
+        for (int i = 0; i < 300 && !mempool.isEmpty(); i++) {
+            transactionsToMine.add(mempool.poll());
+        }
 
-        try{
+        if (!transactionsToMine.isEmpty()) {
+            isMiningInProgress.set(false);
+            System.out.println("[TransactionProcessor] Sinalizador de mineração resetado para 'false'.");
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Transaction tx : transactionsToMine) {
+            sb.append(tx.getFrom()).append(";")
+              .append(tx.getTo()).append(";")
+              .append(tx.getValue()).append(";")
+              .append(tx.getFee()).append("\n");
+        }
+        System.out.println("[TransactionProcessor] Enviando " + transactionsToMine.size() + " transações para o Miner.");
+        return sb.toString();
+    }
 
-            String[] partsBody = jsonPayload.replace("{", "").replace("}", "").replace("\"", "").split(",");
-            String from = partsBody[0].split(":")[1].trim();
-            String to = partsBody[1].split(":")[1].trim();
-            double value = Double.parseDouble(partsBody[2].split(":")[1].trim());
-            double fee = Double.parseDouble(partsBody[3].split(":")[1].trim());
+    private String handleAddTransaction(String payload) {
+        try {
+            String[] fields = payload.split(";");
+            if (fields.length != 4) {
+                return "ERRO: Payload da transação mal formatado.";
+            }
 
-            Transaction txDATA = new Transaction(from, to, value, fee);
-            mempool.add(txDATA);
+            String from = fields[0];
+            String to = fields[1];
+            double value = Double.parseDouble(fields[2]);
+            double fee = Double.parseDouble(fields[3]);
+            Transaction txData = new Transaction(from, to, value, fee);
+            mempool.add(txData);
 
-            System.out.println("[TransactionProcessor] Nova transação na mempool: " + txData);
+            int currentSize = mempool.size();
+
+            System.out.printf("[TransactionProcessor] Nova transação na mempool: %s (Tamanho atual: %d)\n", 
+                  txData.toString(), currentSize);
+            
+            if (currentSize >= 300) {
+                // compareAndSet para garantir que apenas uma thread dispare a mineração
+                if (isMiningInProgress.compareAndSet(false, true)) {
+                    System.out.println("[TransactionProcessor] CONDIÇÃO ATINGIDA! Disparando mineração...");
+                    // Dispara a mineração em uma nova thread para não bloquear a resposta.
+                    new Thread(() -> {
+                        try {
+                            String response = clientToGateway.send(gatewayHost, gatewayPort, "MINE_BLOCK|");
+                            System.out.println("[TransactionProcessor] Resposta da mineração: " + response);
+                        } catch (Exception e) {
+                            System.err.println("[TransactionProcessor] Falha ao disparar a mineração: " + e.getMessage());
+                            // Se a notificação falhar, reseta o sinalizador para permitir uma nova tentativa.
+                            isMiningInProgress.set(false);
+                        }
+                    }).start();
+                } else {
+                    System.out.println("[TransactionProcessor] Mineração já em andamento, aguardando...");
+                }
+            }
+
             return "SUCESSO: Transação adicionada.";
 
-        }catch (Exception e) {
+        } catch (Exception e) {
+            
             return "ERRO: Falha ao processar transação - " + e.getMessage();
+            
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        if (args.length < 4) {
+            System.out.println("Uso: java TransactionalProcessor <porta> <gateway_host> <gateway_porta> <UDP|TCP>");
+            return;
+        }
+        int myPort = Integer.parseInt(args[0]);
+        String gatewayHost = args[1];
+        int gatewayPort = Integer.parseInt(args[2]);
+        // Lê o tipo de comunicação da linha de comando
+        CommunicationType commType = CommunicationType.valueOf(args[3].toUpperCase());
 
-        int mPort = (args.length > 0) ? Integer.parseInt(args[0]) : 9001;
-        String gatewayHost = (args.length > 1) ? args[1] : "localhost";
-        int gatewayPort = (args.length > 2) ? Integer.parseInt(args[2]) : 8080;
-        TransactionProcessor processor = new TransactionProcessor(mPort, gatewayHost, gatewayPort);
-        processor.start();
-    }   
+        new TransactionalProcessor(myPort, gatewayHost, gatewayPort, commType, ComponentType.TRANSACTION_PROCESSOR).start();
+    }
 }

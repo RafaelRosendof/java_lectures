@@ -1,23 +1,71 @@
 import java.io.IOException;
 import java.net.*;
 
+import javax.xml.crypto.Data;
+
+
 public class UDPClient implements ComponentClient {
-    @Override
+
+    private static final int DEFAULT_TIMEOUT = 10000; // 10 
+    private static final int MAX_RETRIES = 3;
+    private static final int RETRY_DELAY = 1000;
+
+    
+    @Override 
     public String send(String host, int port, String request) throws IOException {
-        try (DatagramSocket socket = new DatagramSocket()) {
-            InetAddress address = InetAddress.getByName(host);
-            byte[] requestBytes = request.getBytes();
-
-            DatagramPacket requestPacket = new DatagramPacket(requestBytes, requestBytes.length, address, port);
-            socket.send(requestPacket);
-
-            byte[] buffer = new byte[65535];
-            DatagramPacket responsePacket = new DatagramPacket(buffer, buffer.length);
-            socket.setSoTimeout(5000); // Timeout de 5 segundos
-            
-            socket.receive(responsePacket);
-            
-            return new String(responsePacket.getData(), 0, responsePacket.getLength());
-        }
+        return sendWithRetry(host, port, request, DEFAULT_TIMEOUT, MAX_RETRIES);
     }
+
+
+    public String sendWithRetry(String host , int port , String request , int timeoutMS , int maxRetries) throws IOException {
+
+        IOException lastException = null;
+
+        for(int att = 0 ; att <= maxRetries ; att++){
+
+            try(DatagramSocket socket = new DatagramSocket()){
+
+                InetAddress addres = InetAddress.getByName(host);
+                byte[] requestBytes = request.getBytes();
+
+                DatagramPacket requestPacket = new DatagramPacket(requestBytes, requestBytes.length, addres, port);
+                socket.send(requestPacket);
+
+                byte[] buffer = new byte[16384];
+                DatagramPacket responsePacket = new DatagramPacket(buffer, buffer.length);
+                
+                int timeoutAdaptativo = request.startsWith("MINE_BLOCK") ? timeoutMS * 3 : timeoutMS;
+
+                socket.setSoTimeout(timeoutAdaptativo);
+                socket.receive(responsePacket);
+
+                String response = new String(responsePacket.getData(), 0, responsePacket.getLength());
+
+                if (att > 1) {
+                    System.out.println("[UDPClient] Requisição atendida após " + att + " tentativas.");
+                }
+
+                return response;
+
+            }catch(IOException e){
+                lastException = e;
+
+                System.err.printf("[UDPClient] Tentativa %d falhou para %s:%d - %s\n", 
+                                 att, host, port, e.getMessage());
+
+                if (att < maxRetries) {
+                    try {
+                        Thread.sleep(RETRY_DELAY);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("Interrompido durante retry", ie);
+                    }
+                
+                }
+            }
+        }
+
+        throw new IOException("Falha após " + maxRetries + " tentativas: " + lastException.getMessage(), lastException);
+    }
+
 }

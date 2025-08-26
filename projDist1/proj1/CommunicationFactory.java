@@ -8,10 +8,9 @@ public class CommunicationFactory {
             //     return new HttpServer(); 
 
             case TCP:
-                return new HTTPServer();
-
-            case GRPC:
-                return new GRPCServer();
+                return new TCPServer();
+            //case GRPC:
+            //    return new GRPCServer();
 
             default:
                 throw new IllegalArgumentException("Tipo de servidor desconhecido: " + type);
@@ -25,12 +24,12 @@ public class CommunicationFactory {
             // Caso queira adicionar HTTP no futuro:
             // case HTTP:
             //     return new HttpClient();
-            case GRPC:
-                return new GRPCClient();
-
+            //case GRPC:
+            //    return new GRPCClient();
+//
             case TCP:
-                return new HTTPClient();
-                
+                return new TCPClient();
+//
             default:
                 throw new IllegalArgumentException("Tipo de cliente desconhecido: " + type);
         }
