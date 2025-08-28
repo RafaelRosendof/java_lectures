@@ -10,4 +10,6 @@ cd "logs"
 rm -f *.log
 cd ..
 
+rm -f *.class
+
 echo "Todos os processos foram encerrados."

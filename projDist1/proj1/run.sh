@@ -25,18 +25,18 @@ rm -f $dir/*.log
 
 echo "Iniciando Gateway..."
 java Gateway $portGateway $type > $dir/gateway.log 2>&1 &
-sleep 2
+sleep 1
 
 echo "Iniciando TransactionalProcessor..."
 java TransactionalProcessor 9001 $ip $portGateway $type > $dir/txData.log 2>&1 &
-sleep 2
+
 
 
 for ((i=0; i<NUM_MINERS; i++)); do
     port=$((porta_inicial + i))
     echo "Iniciando Miner na porta $port..."
     java Miner $port $ip $portGateway $type > $dir/miner_$port.log 2>&1 &
-    sleep 2
+    
 done
 
 

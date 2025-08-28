@@ -4,8 +4,8 @@ public class CommunicationFactory {
             case UDP:
                 return new UDPServer();
             // Caso queira adicionar HTTP no futuro:
-            // case HTTP:
-            //     return new HttpServer(); 
+            case HTTP:
+                return new HttpServer(); 
 
             case TCP:
                 return new TCPServer();
@@ -22,8 +22,8 @@ public class CommunicationFactory {
             case UDP:
                 return new UDPClient();
             // Caso queira adicionar HTTP no futuro:
-            // case HTTP:
-            //     return new HttpClient();
+            case HTTP:
+                return new HttpClient();
             //case GRPC:
             //    return new GRPCClient();
 //

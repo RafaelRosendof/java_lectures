@@ -47,7 +47,7 @@ public class TransactionalProcessor extends BaseComponent {
     
         List<Transaction> transactionsToMine = new ArrayList<>();
         
-        for (int i = 0; i < 300 && !mempool.isEmpty(); i++) {
+        for (int i = 0; i < 400 && !mempool.isEmpty(); i++) {
             transactionsToMine.add(mempool.poll());
         }
 
@@ -85,7 +85,7 @@ public class TransactionalProcessor extends BaseComponent {
             System.out.printf("[TransactionProcessor] Nova transação na mempool: %s (Tamanho atual: %d)\n", 
                   txData.toString(), currentSize);
             
-            if (currentSize >= 300) {
+            if (currentSize >= 400) {
                 // compareAndSet para garantir que apenas uma thread dispare a mineração
                 if (isMiningInProgress.compareAndSet(false, true)) {
                     System.out.println("[TransactionProcessor] CONDIÇÃO ATINGIDA! Disparando mineração...");
