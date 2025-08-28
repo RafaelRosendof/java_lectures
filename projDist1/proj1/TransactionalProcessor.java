@@ -1,4 +1,7 @@
-//Componente A -> faz apenas a transação Stateless
+//Componente A
+
+// Esse cara aqui ta statefull, para ser stateless vou passar a mempool para o Miner e vou fazer uma requisição para ele 
+//
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +20,6 @@ public class TransactionalProcessor extends BaseComponent {
         super(port, gatewayHost, gatewayPort, commType, componentType);
         this.clientToGateway = CommunicationFactory.createClient(commType);
     }
-
-    // Esse aqui tem que chamar o Miner mine, o cliente não pode fazer requisição para minerar o nodo 
-    // Caso o bloco tenha tamanho de 300 aí chama o mine do Mine 
-    // 
 
     @Override
     protected RequestHandler getRequestHandler() {
@@ -70,7 +69,12 @@ public class TransactionalProcessor extends BaseComponent {
         try {
             String[] fields = payload.split(";");
             if (fields.length != 4) {
-                return "ERRO: Payload da transação mal formatado.";
+                //return "ERRO: Payload da transação mal formatado.";
+                if (commType == CommunicationType.TCP) {
+                    return "Error: invalid"; // o Jmeter precisa reconhecer o erro
+                } else {
+                    return "ERRO: Payload da transação mal formatado.";
+                }
             }
 
             String from = fields[0];
@@ -109,8 +113,13 @@ public class TransactionalProcessor extends BaseComponent {
 
         } catch (Exception e) {
             
-            return "ERRO: Falha ao processar transação - " + e.getMessage();
-            
+            //return "ERRO: Falha ao processar transação - " + e.getMessage();
+
+            if(commType == CommunicationType.TCP){
+                return "Error: invalid"; // o Jmeter precisa reconhecer o erro
+            } else {
+                return "ERRO: Falha ao processar transação - " + e.getMessage();
+            }
         }
     }
 
