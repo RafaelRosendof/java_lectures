@@ -1,9 +1,5 @@
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.List;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.net.*;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -61,6 +57,7 @@ public class Gateway {
     private String routeRequest(String command, String payload) {
         ComponentInfo targetComponent = null;
         try {
+            /* 
             switch (command) {
                 case "ADD_TRANSACTION":
                 case "GET_MEMPOOL":
@@ -76,6 +73,13 @@ public class Gateway {
                 default:
                     return "ERRO: Comando desconhecido no Gateway.";
             }
+            */
+
+            targetComponent = switch (command) {
+                case "ADD_TRANSACTION", "GET_MEMPOOL" -> findAvailableComponentRoundRobin(ComponentType.TRANSACTION_PROCESSOR);
+                case "MINE_BLOCK", "GET_BLOCK", "GET_BLOCKCHAIN" -> findAvailableComponentRoundRobin(ComponentType.MINER);
+                default -> null;
+            };
 
             if (targetComponent == null) {
                 return "ERRO: Nenhum componente disponível para o comando " + command;
@@ -93,6 +97,11 @@ public class Gateway {
 
         } catch (Exception e) {
             System.err.println("[Gateway] Erro ao rotear requisição para " + command + ": " + e.getMessage());
+        }
+        
+        
+        if(communicationType == CommunicationType.TCP) {
+            return "404";
         }
         return "ERRO: Falha de comunicação com o componente de destino.";
     }
