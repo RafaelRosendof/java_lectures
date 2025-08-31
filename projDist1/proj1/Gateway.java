@@ -56,54 +56,44 @@ public class Gateway {
 
     private String routeRequest(String command, String payload) {
         ComponentInfo targetComponent = null;
+        String jmeterErrorResponse = "ERRO_GATEWAY: SERVICO_INDISPONIVEL";
         try {
-            /* 
-            switch (command) {
-                case "ADD_TRANSACTION":
-                case "GET_MEMPOOL":
-                    //targetComponent = findAvailableComponent(ComponentType.TRANSACTION_PROCESSOR);    
-                    targetComponent = findAvailableComponentRoundRobin(ComponentType.TRANSACTION_PROCESSOR);
-                    break;
-                case "MINE_BLOCK":
-                case "GET_BLOCK": 
-                case "GET_BLOCKCHAIN":
-                    //targetComponent = findAvailableComponent(ComponentType.MINER);
-                    targetComponent = findAvailableComponentRoundRobin(ComponentType.MINER);
-                    break;
-                default:
-                    return "ERRO: Comando desconhecido no Gateway.";
-            }
-            */
-
             targetComponent = switch (command) {
-                case "ADD_TRANSACTION", "GET_MEMPOOL" -> findAvailableComponentRoundRobin(ComponentType.TRANSACTION_PROCESSOR);
-                case "MINE_BLOCK", "GET_BLOCK", "GET_BLOCKCHAIN" -> findAvailableComponentRoundRobin(ComponentType.MINER);
+                // 1. Comando inicial do JMeter vai para o TransactionalProcessor.
+                case "ADD_TRANSACTION" -> findAvailableComponentRoundRobin(ComponentType.TRANSACTION_PROCESSOR);
+            
+                // 2. Novo comando do TransactionalProcessor vai para o Miner.
+                case "ROUTE_TO_MINER" -> findAvailableComponentRoundRobin(ComponentType.MINER);
+                
+                // Comandos de debug/consulta continuam indo para o Miner.
+                case "GET_BLOCKCHAIN" -> findAvailableComponentRoundRobin(ComponentType.MINER);
+                
                 default -> null;
             };
-
+        
             if (targetComponent == null) {
-                return "ERRO: Nenhum componente disponível para o comando " + command;
+                System.err.println("[Gateway] Nenhum componente disponível para o comando " + command);
+                return jmeterErrorResponse;
             }
-
-            System.out.printf("[Gateway] Roteando '%s' para %s\n", command, targetComponent);
-
-            int timeout = "MINE_BLOCK".equals(command) ? 30000 : 10000;
+        
+            // A requisição para o Miner deve ser o comando original "ADD_TRANSACTION"
+            String internalRequest;
+            if ("ROUTE_TO_MINER".equals(command)) {
+                // O Miner espera "ADD_TRANSACTION", não "ROUTE_TO_MINER". Nós traduzimos de volta.
+                internalRequest = "ADD_TRANSACTION|" + payload;
+            } else {
+                internalRequest = command + "|" + payload;
+            }
+        
+            System.out.printf("[Gateway] Roteando comando original '%s' como '%s' para %s\n", 
+                            command, internalRequest.split("\\|")[0], targetComponent);
             
+            return sendWithTimeout(targetComponent, internalRequest, 10000);
             
-            String internalRequest = command + "|" + payload;
-            
-            return sendWithTimeout(targetComponent, internalRequest, timeout);
-            
-
         } catch (Exception e) {
-            System.err.println("[Gateway] Erro ao rotear requisição para " + command + ": " + e.getMessage());
+            System.err.println("[Gateway] Erro de comunicação ao rotear '" + command + "' para " + targetComponent + ": " + e.getMessage());
+            return jmeterErrorResponse;
         }
-        
-        
-        if(communicationType == CommunicationType.TCP) {
-            return "404";
-        }
-        return "ERRO: Falha de comunicação com o componente de destino.";
     }
 
     private String sendWithTimeout(ComponentInfo target, String request, int timeout) throws Exception {
@@ -218,6 +208,58 @@ public class Gateway {
 
 
 /*
+
+    private String routeRequest(String command, String payload) {
+        ComponentInfo targetComponent = null;
+        String jmeterErrorResponse = "ERRO_GATEWAY: SERVICO_INDISPONIVEL";
+        try {
+            targetComponent = switch (command) {
+                //case "ADD_TRANSACTION", "GET_MEMPOOL" -> findAvailableComponentRoundRobin(ComponentType.MINER);
+                case "ADD_TRANSACTION", "GET_MEMPOOL" -> findAvailableComponentRoundRobin(ComponentType.TRANSACTION_PROCESSOR);
+                case "MINE_BLOCK", "GET_BLOCK", "GET_BLOCKCHAIN", "ROUTE_TO_MINER" -> findAvailableComponentRoundRobin(ComponentType.MINER);
+                //case "ROUTE_TO_MINER" -> findAvailableComponentRoundRobin(ComponentType.MINER);
+                default -> null;
+            };
+
+            if (targetComponent == null) {
+                System.err.println("[Gateway] Nenhum componente disponível para o comando " + command);
+                return jmeterErrorResponse;
+            }
+
+            System.out.printf("[Gateway] Roteando '%s' para %s\n", command, targetComponent);
+
+            int timeout = 10000;
+            
+            
+            String internalRequest = command + "|" + payload;
+            
+            return sendWithTimeout(targetComponent, internalRequest, timeout);
+            
+
+        } catch (Exception e) {
+            System.err.println("[Gateway] Erro de comunicação ao rotear '" + command + "' para " + targetComponent + ": " + e.getMessage());
+            return jmeterErrorResponse;
+        }
+    }
+
+
+            
+            switch (command) {
+                case "ADD_TRANSACTION":
+                case "GET_MEMPOOL":
+                    //targetComponent = findAvailableComponent(ComponentType.TRANSACTION_PROCESSOR);    
+                    targetComponent = findAvailableComponentRoundRobin(ComponentType.TRANSACTION_PROCESSOR);
+                    break;
+                case "MINE_BLOCK":
+                case "GET_BLOCK": 
+                case "GET_BLOCKCHAIN":
+                    //targetComponent = findAvailableComponent(ComponentType.MINER);
+                    targetComponent = findAvailableComponentRoundRobin(ComponentType.MINER);
+                    break;
+                default:
+                    return "ERRO: Comando desconhecido no Gateway.";
+            }
+            
 
    private ComponentInfo findAvailableComponent(ComponentType type) {
         // Lógica simples: pega o primeiro que encontrar.

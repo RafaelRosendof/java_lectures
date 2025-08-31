@@ -1,7 +1,5 @@
 //Componente A
 
-// Esse cara aqui ta statefull, para ser stateless vou passar a mempool para o Miner e vou fazer uma requisição para ele 
-//
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,11 +8,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TransactionalProcessor extends BaseComponent {
 
-    private final ConcurrentLinkedQueue<Transaction> mempool = new ConcurrentLinkedQueue<>();
+    //private final ConcurrentLinkedQueue<Transaction> mempool = new ConcurrentLinkedQueue<>();
     private final ComponentClient clientToGateway;
 
     // não quero mais de uma thread aqui 
-    private final AtomicBoolean isMiningInProgress = new AtomicBoolean(false);
+    //private final AtomicBoolean isMiningInProgress = new AtomicBoolean(false);
 
     public TransactionalProcessor(int port, String gatewayHost, int gatewayPort, CommunicationType commType, ComponentType componentType) {
         super(port, gatewayHost, gatewayPort, commType, componentType);
@@ -32,39 +30,52 @@ public class TransactionalProcessor extends BaseComponent {
             if("ADD_TRANSACTION".equals(command)){
                 return handleAddTransaction(payload);
             }
-
             else if("GET_MEMPOOL".equals(command)) {
-                return getMempoolSnapshot();
+                //return getMempoolSnapshot();
+                System.out.println("Temporariamente indisponível");
             }
 
             return "ERRO: Comando desconhecido";
         };
     }
 
-    private String getMempoolSnapshot() {
-        System.out.println("[TransactionProcessor] Solicitada cópia da mempool. Tamanho atual: " + mempool.size());
-    
-        List<Transaction> transactionsToMine = new ArrayList<>();
-        
-        for (int i = 0; i < 400 && !mempool.isEmpty(); i++) {
-            transactionsToMine.add(mempool.poll());
-        }
 
-        if (!transactionsToMine.isEmpty()) {
-            isMiningInProgress.set(false);
-            System.out.println("[TransactionProcessor] Sinalizador de mineração resetado para 'false'.");
+    private String handleAddTransaction(String payload) {
+        try {
+            // Monta a requisição que será enviada para o Gateway.
+            // O Gateway saberá que "ADD_TRANSACTION" deve ser roteado para um Miner.
+            //String requestToGateway = command + "|" + payload;
+            String requestToGateway = "ROUTE_TO_MINER|" + payload;
+            // System.out.println("[TransactionProcessor] Repassando transação para o Gateway...");
+            
+            // Envia para o Gateway e retorna a resposta do Miner diretamente para o cliente.
+            System.out.println("[TransactionProcessor] Repassando transação para o Gateway " + payload + " ...");
+            return clientToGateway.send(gatewayHost, gatewayPort, requestToGateway);
+
+        } catch (Exception e) {
+            System.err.println("[TransactionProcessor] Falha ao repassar transação para o Gateway: " + e.getMessage());
+            return "ERRO: Falha na comunicação com o Gateway.";
         }
-        StringBuilder sb = new StringBuilder();
-        for (Transaction tx : transactionsToMine) {
-            sb.append(tx.getFrom()).append(";")
-              .append(tx.getTo()).append(";")
-              .append(tx.getValue()).append(";")
-              .append(tx.getFee()).append("\n");
-        }
-        System.out.println("[TransactionProcessor] Enviando " + transactionsToMine.size() + " transações para o Miner.");
-        return sb.toString();
     }
 
+
+    public static void main(String[] args) throws Exception {
+        if (args.length < 4) {
+            System.out.println("Uso: java TransactionalProcessor <porta> <gateway_host> <gateway_porta> <UDP|TCP>");
+            return;
+        }
+        int myPort = Integer.parseInt(args[0]);
+        String gatewayHost = args[1];
+        int gatewayPort = Integer.parseInt(args[2]);
+        // Lê o tipo de comunicação da linha de comando
+        CommunicationType commType = CommunicationType.valueOf(args[3].toUpperCase());
+
+        new TransactionalProcessor(myPort, gatewayHost, gatewayPort, commType, ComponentType.TRANSACTION_PROCESSOR).start();
+    }
+}
+
+
+   /* 
     private String handleAddTransaction(String payload) {
         try {
             String[] fields = payload.split(";");
@@ -122,18 +133,30 @@ public class TransactionalProcessor extends BaseComponent {
             }
         }
     }
+    */
 
-    public static void main(String[] args) throws Exception {
-        if (args.length < 4) {
-            System.out.println("Uso: java TransactionalProcessor <porta> <gateway_host> <gateway_porta> <UDP|TCP>");
-            return;
+    /* 
+    private String getMempoolSnapshot() {
+        System.out.println("[TransactionProcessor] Solicitada cópia da mempool. Tamanho atual: " + mempool.size());
+    
+        List<Transaction> transactionsToMine = new ArrayList<>();
+        
+        for (int i = 0; i < 400 && !mempool.isEmpty(); i++) {
+            transactionsToMine.add(mempool.poll());
         }
-        int myPort = Integer.parseInt(args[0]);
-        String gatewayHost = args[1];
-        int gatewayPort = Integer.parseInt(args[2]);
-        // Lê o tipo de comunicação da linha de comando
-        CommunicationType commType = CommunicationType.valueOf(args[3].toUpperCase());
 
-        new TransactionalProcessor(myPort, gatewayHost, gatewayPort, commType, ComponentType.TRANSACTION_PROCESSOR).start();
+        if (!transactionsToMine.isEmpty()) {
+            isMiningInProgress.set(false);
+            System.out.println("[TransactionProcessor] Sinalizador de mineração resetado para 'false'.");
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Transaction tx : transactionsToMine) {
+            sb.append(tx.getFrom()).append(";")
+              .append(tx.getTo()).append(";")
+              .append(tx.getValue()).append(";")
+              .append(tx.getFee()).append("\n");
+        }
+        System.out.println("[TransactionProcessor] Enviando " + transactionsToMine.size() + " transações para o Miner.");
+        return sb.toString();
     }
-}
+    */

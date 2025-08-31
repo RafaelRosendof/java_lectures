@@ -49,6 +49,8 @@ public class HttpClient implements ComponentClient {
                 String statusLine = in.readLine();
 
                 // Ler headers da resposta até a linha em branco
+                //ADD_TRANSACTION|Wallet_A_${__threadNum()};Wallet_B_${__threadNum()};${__Random(1,500)};${__Random(1,10)}
+
                 int responseContentLength = 0;
                 String headerLine;
                 while ((headerLine = in.readLine()) != null && !headerLine.isEmpty()) {

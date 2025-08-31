@@ -12,7 +12,7 @@ public class UDPServer implements ComponentServer {
     private ExecutorService threadPool;
 
     private static final int BUFFER_SIZE = 16384;
-    private static final int THREAD_POOL_SIZE = 50;
+    private static final int THREAD_POOL_SIZE = 500;
 
 
     @Override
@@ -87,7 +87,7 @@ public class UDPServer implements ComponentServer {
             System.err.println("[UDP] Erro ao processar pacote: " + e.getMessage());
         }
     }
-
+    
     @Override
     public void stop() {
         running = false;
@@ -113,6 +113,75 @@ public class UDPServer implements ComponentServer {
 
 /*
 
+private void handlePacket(DatagramPacket packet, RequestHandler handler) {
+    System.out.println("DEBUG: 1. handlePacket INICIADO para " + packet.getSocketAddress());
+    String response = "ERRO_PADRAO_DEBUG";
+    try {
+        String request = new String(packet.getData(), 0, packet.getLength());
+        System.out.println("DEBUG: 2. Requisição recebida: " + request);
+
+        System.out.println("DEBUG: 3. Chamando handler.handle()...");
+        String handlerResponse = handler.handle(request);
+        System.out.println("DEBUG: 4. Handler retornou: " + handlerResponse);
+
+        if (handlerResponse == null) {
+            System.err.println("[UDPServer] ERRO CRÍTICO: Handler retornou resposta nula.");
+            response = "ERRO: Resposta interna do servidor foi nula.";
+        } else {
+            response = handlerResponse;
+        }
+
+    } catch (Exception e) {
+        System.err.println("[UDPServer] ERRO CRÍTICO NO CATCH: " + e.getClass().getName());
+        e.printStackTrace();
+        response = "ERRO_CATCH_DEBUG";
+    } finally {
+        System.out.println("DEBUG: 5. Entrou no bloco FINALLY. Tentando enviar resposta: " + response);
+        try {
+            byte[] responseBytes = response.getBytes();
+            DatagramPacket responsePacket = new DatagramPacket(
+                responseBytes, responseBytes.length, packet.getAddress(), packet.getPort());
+            
+            synchronized (socket) { 
+                socket.send(responsePacket);
+            }
+            System.out.println("DEBUG: 6. Resposta ENVIADA com sucesso.");
+        } catch (IOException e) {
+            System.err.println("[UDPServer] ERRO DE I/O AO ENVIAR RESPOSTA: " + e.getMessage());
+        }
+    }
+}
+
+
+
+    private void handlePacket(DatagramPacket packet , RequestHandler handler){
+        try{
+            String request = new String(packet.getData(), 0 , packet.getLength());
+
+            if(packet.getLength() > BUFFER_SIZE * 0.9){
+                System.out.println("[UDP] AVISO: Packet grande: " + packet.getLength() + " bytes");
+            }
+
+            String response = handler.handle(request);
+
+            byte[] responseBytes = response.getBytes();
+            if (responseBytes.length > BUFFER_SIZE) {
+                System.err.println("[UDP] ERRO: Resposta muito grande: " + responseBytes.length + " bytes");
+                response = "ERRO: Resposta muito grande para UDP";
+                responseBytes = response.getBytes();
+            }
+
+            DatagramPacket responsePacket = new DatagramPacket(
+                responseBytes, responseBytes.length, packet.getAddress(), packet.getPort());
+
+            synchronized (socket) { // Sincroniza envio
+                socket.send(responsePacket);
+            }  
+        
+        }catch(IOException e) {
+            System.err.println("[UDP] Erro ao processar pacote: " + e.getMessage());
+        }
+    }
 
     @Override
     public void stop() {

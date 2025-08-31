@@ -20,7 +20,7 @@ public class TCPServer implements ComponentServer {
     private volatile boolean running = false;
     private ExecutorService threadPool;
 
-    private static final int THREAD_POOL_SIZE = 50;
+    private static final int THREAD_POOL_SIZE = 500;
     private static final int BUFFER_SIZE = 8192; // o ideal é 8kb talvez
 
 

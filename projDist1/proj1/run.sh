@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ip="localhost"
-portGateway=8080
+portGateway=8082
 
 type=$1
 NUM_MINERS=$2
