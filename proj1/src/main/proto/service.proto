@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+// Definir o nome da classe Java gerada
+option java_outer_classname = "ServiceOuterClass";
+
+// Definição do serviço
+service ComponentService {
+  rpc ProcessRequest(RequestMessage) returns (ResponseMessage);
+}
+
+// Mensagem de requisição
+message RequestMessage {
+  string command = 1;
+  string payload = 2;
+}
+
+// Mensagem de resposta
+message ResponseMessage {
+  string result = 1;
+}
