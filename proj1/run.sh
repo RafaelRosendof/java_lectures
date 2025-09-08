@@ -15,8 +15,9 @@ if [ ! -d "$dir" ]; then
   mkdir "$dir"
 fi
 
-# Compila o projeto com Maven
+
 echo "Compilando com Maven..."
+mvn clean install
 mvn clean compile
 
 if [ $? -ne 0 ]; then
@@ -24,7 +25,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Obter o classpath do Maven (mais simples e confiável)
+
 CLASSPATH="target/classes:$(mvn dependency:build-classpath -Dmdep.outputFile=/dev/stdout -q 2>/dev/null)"
 
 rm -f $dir/*.log

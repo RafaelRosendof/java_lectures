@@ -121,7 +121,7 @@
                         <mainClass>Gateway</mainClass>
                         <arguments>
                             <argument>8082</argument>
-                            <argument>TCP</argument>
+                            <argument>${protocol}</argument>
                         </arguments>
                     </configuration>
                 </plugin>
@@ -142,7 +142,7 @@
                             <argument>9001</argument>
                             <argument>localhost</argument>
                             <argument>8082</argument>
-                            <argument>TCP</argument>
+                            <argument>${protocol}</argument>
                         </arguments>
                     </configuration>
                 </plugin>
