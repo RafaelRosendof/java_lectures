@@ -4,9 +4,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 public @interface RequestMapping {
-    String path();
+    String path() default "/";
     String method() default "GET"; // GET + POST  
     String consumes() default "application/json";
     String produces() default "application/json";

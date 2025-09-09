@@ -41,11 +41,27 @@ public class MiddwareServer {
     public void registerService(Object service){
         this.serviceImplementation = service;
 
-        for(Method method : service.getClass().getDeclaredMethods()){
+        Class<?> serviceClass = service.getClass();
+        if (serviceClass.isAnnotationPresent(RequestMapping.class)){
+            RequestMapping classAnnotation = serviceClass.getAnnotation(RequestMapping.class);
+            String basePath = classAnnotation.path();
+            System.out.println("Service registrado com path base: " + basePath);
+        }
+
+        for(Method method : serviceClass.getDeclaredMethods()){
             if(method.isAnnotationPresent(RequestMapping.class)){
-                RequestMapping annotation = method.getAnnotation(RequestMapping.class);
-                // chave = VERBO:/CAMINHO -> POST:/add_transaction
-                String rKey = annotation.method().toUpperCase() + ":" + annotation.path();
+                RequestMapping methodAnnotation = method.getAnnotation(RequestMapping.class);
+
+                String fullPath = methodAnnotation.path();
+                if(serviceClass.isAnnotationPresent(RequestMapping.class)){
+                    RequestMapping classAnnotation = serviceClass.getAnnotation(RequestMapping.class);
+                    String basePath = classAnnotation.path();
+                    if(!basePath.isEmpty()){
+                        fullPath = basePath + (methodAnnotation.path().isEmpty() ? "" : methodAnnotation.path());
+                    }
+                }
+
+                String rKey = methodAnnotation.method().toUpperCase() + ":" + fullPath;
                 routeMap.put(rKey, method);
                 System.out.println("Rota Registrada: " + rKey + " -> " + method.getName());
             }
