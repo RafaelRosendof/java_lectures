@@ -10,7 +10,7 @@ public class Main {
         // instancia
         MiddwareServer server = new MiddwareServer();
 
-        // 3. Registra seu serviço no middleware para que ele possa encontrar os métodos anotados 
+        
         server.registerService(blockchainService);
 
         // 4. Inicia o servidor do middleware na porta desejada 

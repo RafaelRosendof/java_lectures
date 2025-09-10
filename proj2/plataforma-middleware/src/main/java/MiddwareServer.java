@@ -25,6 +25,43 @@ Marshal: "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"status\":\
 
  */
 
+/*
+ * Request handelr  É o componente do lado do servidor que escuta na rede, aceita conexões e passa os dados brutos para o próximo nível. Ele lida com o I/O de baixo nível.
+ * O Invoker é responsável por receber uma requisição já decodificada (unmarshalled), descobrir qual método do objeto de negócio deve ser chamado e invocá-lo, passando os parâmetros corretos.
+ * 
+ * 
+ * O que é? É o responsável por transformar a representação de dados da linguagem (objetos, tipos primitivos) em um formato para transmissão na rede (bytes, JSON, XML) e vice-versa. 
+ * O processo de conversão para o formato de rede é o Marshalling, e o processo inverso é o Unmarshalling
+ * 
+ * 
+ * Interface Description 
+ * Define a "interface" do objeto remoto: quais métodos estão disponíveis, seus nomes, parâmetros e tipos de retorno. 
+ * Isso permite que o cliente e o servidor concordem sobre como a comunicação deve ocorrer.
+ * 
+ * 
+ * Client Request Handler
+
+    O que é? É o espelho do Server Request Handler. Ele é responsável por estabelecer a conexão com o servidor, enviar os bytes da requisição pela rede e receber a resposta.
+
+    Onde criar no seu código? Você precisa criar um cliente HTTP "na mão", assim como fez com o servidor. Você pode criar uma classe HttpClient.java que usa java.net.Socket.
+
+
+Requestor
+
+    O que é? O Requestor constrói a requisição. Ele pega o nome do método e os parâmetros, usa o Marshaller para 
+    formatá-los no protocolo de rede (neste caso, uma string HTTP) e entrega para o Client Request Handler enviar.
+
+Client Proxy
+
+    O que é? É um objeto no lado do cliente que se parece exatamente com o objeto remoto no servidor. Quando seu código de aplicação chama um método no Proxy, ele, 
+    por baixo dos panos, executa toda a lógica de comunicação remota (Requestor -> Marshalling -> Client Request Handler).
+
+
+Remoting Error
+
+    O que é? É um padrão para comunicar erros que ocorrem durante a invocação remota de volta para o cliente de uma forma padronizada.
+ */
+
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
