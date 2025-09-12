@@ -1,15 +1,4 @@
-
-
 /*
- * this class gonna be the main server class 
- * will use java.socket to accept connections 
- * for each new connection will create a new thread
- * and will use reflection to call the right method
- */
-
-/*
- Marshal and Unmarshal -> dont need to use Jackson because 
-
  wallet_A_${__threadNum()};wallet_B_${__threadNum()};${__Random(1,500)};${__Random(1,10)}
 
 POST http://localhost:8082/ADD_TRANSACTION
@@ -26,40 +15,57 @@ Marshal: "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"status\":\
  */
 
 /*
- * Request handelr  É o componente do lado do servidor que escuta na rede, aceita conexões e passa os dados brutos para o próximo nível. Ele lida com o I/O de baixo nível.
- * O Invoker é responsável por receber uma requisição já decodificada (unmarshalled), descobrir qual método do objeto de negócio deve ser chamado e invocá-lo, passando os parâmetros corretos.
- * 
- * 
- * O que é? É o responsável por transformar a representação de dados da linguagem (objetos, tipos primitivos) em um formato para transmissão na rede (bytes, JSON, XML) e vice-versa. 
- * O processo de conversão para o formato de rede é o Marshalling, e o processo inverso é o Unmarshalling
- * 
- * 
- * Interface Description 
- * Define a "interface" do objeto remoto: quais métodos estão disponíveis, seus nomes, parâmetros e tipos de retorno. 
- * Isso permite que o cliente e o servidor concordem sobre como a comunicação deve ocorrer.
- * 
- * 
- * Client Request Handler
 
-    O que é? É o espelho do Server Request Handler. Ele é responsável por estabelecer a conexão com o servidor, enviar os bytes da requisição pela rede e receber a resposta.
+Check-List:
+Server-Side
+- Server Request Handler  MiddwareServer.start()
+- Message
+- Invoke Register  registerService()
+- Invoke  RequestProcessor.invoke()
+- Marshaller (marshall and unmarshal)  RequestProcessor
+- Invocation Data  String[] params = body.split(";");
+- Instance List  serviceImplementation
+- Remote Object   serviceImplementation
 
-    Onde criar no seu código? Você precisa criar um cliente HTTP "na mão", assim como fez com o servidor. Você pode criar uma classe HttpClient.java que usa java.net.Socket.
-
-
-Requestor
-
-    O que é? O Requestor constrói a requisição. Ele pega o nome do método e os parâmetros, usa o Marshaller para 
-    formatá-los no protocolo de rede (neste caso, uma string HTTP) e entrega para o Client Request Handler enviar.
-
-Client Proxy
-
-    O que é? É um objeto no lado do cliente que se parece exatamente com o objeto remoto no servidor. Quando seu código de aplicação chama um método no Proxy, ele, 
-    por baixo dos panos, executa toda a lógica de comunicação remota (Requestor -> Marshalling -> Client Request Handler).
+Client-Side 
+- Client  GatewayProxy e MinerProxy
+- Client Proxy  ja implementado
+- Requestor  ClientRequestor 
+- Client Request Handler  HttpClient 
+- clientError Remote Error  só falta padronizar 
+- Server Request Handler   no cliente é o HttpClient, que lê a resposta.
+- Invoker    equivalente ao RequestProcessor.invoke() no servidor.
+- Marshaller (marshall and unmarshal)  ClientRequestor
+- ServerError: Remote Error    mesmo que clientError: padronizar mensagem de erro do servidor para o cliente.
 
 
-Remoting Error
+Criar InvocationMessage
 
-    O que é? É um padrão para comunicar erros que ocorrem durante a invocação remota de volta para o cliente de uma forma padronizada.
+Classe simples com: httpMethod, path, headers (map), body.
+
+Isso deixa o parsing no RequestProcessor mais limpo.
+
+Criar InvocationData
+
+Estrutura que guarda os parâmetros já convertidos (ex: from, to, value, fee).
+
+No futuro podemos usar JSON → parse direto para Map<String,Object>.
+
+Padronizar Erros
+
+Criar ErrorResponse (ex: JSON {"error":"mensagem"}).
+
+No RequestProcessor, se um método não for encontrado → retornar 404.
+
+Se exceção durante execução → retornar 500.
+
+Multi-Services
+
+MiddwareServer.registerService() poderia registrar vários serviços (atualmente só um).
+
+O routeMap já suporta múltiplos métodos.
+
+
  */
 
 import java.lang.reflect.Method;
@@ -70,11 +76,57 @@ import java.util.Map;
 
 public class MiddwareServer {
 
-
-    private final Map<String, Method> routeMap = new HashMap<>();
+    private final Map<String, ObjectPool<?>> servicePools = new HashMap<>();
     private Object serviceImplementation;
+    private final Map<String, Method> routeMap = new HashMap<>();
+    private final Map<String, Object> serviceInstances = new HashMap<>();
 
 
+    public void registerService(Class<?> serviceClass , int poolSize) throws Exception {
+
+        ObjectPool<?> pool = new ObjectPool<>(serviceClass, poolSize);
+        String serviceName = serviceClass.getSimpleName();
+        servicePools.put(serviceName, pool);
+
+        String basePath = "";
+        if (serviceClass.isAnnotationPresent(RequestMapping.class)) {
+            RequestMapping classAnnotation = serviceClass.getAnnotation(RequestMapping.class);
+            basePath = classAnnotation.path();
+        }
+        
+        for (Method method : serviceClass.getDeclaredMethods()) {
+            if (method.isAnnotationPresent(RequestMapping.class)) {
+                RequestMapping methodAnnotation = method.getAnnotation(RequestMapping.class);
+
+                String fullPath = basePath + methodAnnotation.path();
+                String rKey = methodAnnotation.method().toUpperCase() + ":" + fullPath;
+
+                routeMap.put(rKey, method);
+                System.out.println("Rota Registrada: " + rKey + " -> " + method.getName());
+            }
+        }
+    }
+
+
+
+   public void start(int port){
+    try {
+        ServerSocket serverSocket = new ServerSocket(port);
+        System.out.println("Servidor iniciado na porta " + port);
+        while(true){
+            Socket clientSocket = serverSocket.accept();
+            System.out.println("Nova conexão de " + clientSocket.getInetAddress().getHostAddress());
+            RequestProcessor processor = new RequestProcessor(clientSocket, routeMap, serviceImplementation);
+            new Thread(processor).start();
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        }
+    }
+
+}
+
+/*
     public void registerService(Object service){
         this.serviceImplementation = service;
 
@@ -104,21 +156,4 @@ public class MiddwareServer {
             }
         }
     }
-
-
-   public void start(int port){
-    try {
-        ServerSocket serverSocket = new ServerSocket(port);
-        System.out.println("Servidor iniciado na porta " + port);
-        while(true){
-            Socket clientSocket = serverSocket.accept();
-            System.out.println("Nova conexão de " + clientSocket.getInetAddress().getHostAddress());
-            RequestProcessor processor = new RequestProcessor(clientSocket, routeMap, serviceImplementation);
-            new Thread(processor).start();
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-        }
-    }
-
-}
+ */
