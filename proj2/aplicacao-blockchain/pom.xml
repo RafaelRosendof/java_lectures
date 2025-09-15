@@ -49,13 +49,20 @@
     </dependency>
 
 
-    <dependency>
-      <groupId>br.ufrn.imd.middleware</groupId>
-      <artifactId>plataforma-middleware</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <scope>system</scope>
-      <systemPath>/home/rafael/java_lectures/proj2/plataforma-middleware/target/plataforma-middleware-1.0-SNAPSHOT.jar</systemPath>
-    </dependency>
+        
+
+        <dependency>
+            <groupId>br.ufrn.imd.middleware</groupId>
+            <artifactId>plataforma-middleware</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Jackson (pode vir transitivamente do middleware, mas é bom ter) -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.15.2</version>
+        </dependency>
 
 
   </dependencies>

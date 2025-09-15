@@ -1,3 +1,13 @@
 RequestProcessor.class
-RequestMapping.class
+ObjectPool.class
+GatewayService.class
 MiddwareServer.class
+InvocationMessage.class
+InvocationData.class
+HttpClient.class
+MinerProxy.class
+RemoteObject.class
+GatewayProxy.class
+RequestMapping.class
+JsonUtil.class
+ClientRequestor.class

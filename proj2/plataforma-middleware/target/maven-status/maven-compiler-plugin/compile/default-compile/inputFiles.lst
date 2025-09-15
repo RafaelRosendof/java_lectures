@@ -1,3 +1,13 @@
-/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/RequestMapping.java
-/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/RequestProcessor.java
+/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/MinerProxy.java
+/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/JsonUtil.java
+/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/GatewayProxy.java
 /home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/MiddwareServer.java
+/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/InvocationData.java
+/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/GatewayService.java
+/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/ClientRequestor.java
+/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/RequestMapping.java
+/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/HttpClient.java
+/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/RemoteObject.java
+/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/ObjectPool.java
+/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/RequestProcessor.java
+/home/rafael/java_lectures/proj2/plataforma-middleware/src/main/java/InvocationMessage.java
