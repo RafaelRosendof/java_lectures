@@ -1,6 +1,7 @@
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -14,27 +15,61 @@ public class BlockChainService {
     private final List<Block> blockchain = new CopyOnWriteArrayList<>();
 
     public BlockChainService() {
-        // Construtor pode inicializar algo se necessário
+        
         System.out.println("BlockChainService instanciado.");
     }
 
     // Este será o método exposto pela rota POST /blockchain/transactions
     @RequestMapping(method = "POST", path = "/transactions")
-    public String addTransaction(String from, String to, double value, double fee) {
+    public String addTransaction(String requestBody) {
         try {
-            Transaction tx = new Transaction(from, to, value, fee);
-            mempool.add(tx);
-            System.out.println("[Service] Transação recebida. Mempool size: " + mempool.size());
 
-            // Lógica para disparar a mineração
-            if (mempool.size() >= 400) { // Limite para mineração
-                // Para não bloquear a resposta, podemos rodar a mineração em outra thread
+            Map<String, Object> data = JsonUtil.parseJson(requestBody);
+            
+           
+            String from = (String) data.get("from");
+            String to = (String) data.get("to");
+            Double value = Double.valueOf(data.get("value").toString());
+            Double fee = Double.valueOf(data.get("fee").toString());
+
+            if (from == null || from.trim().isEmpty()) {
+                return createErrorResponse("Campo 'from' é obrigatório");
+            }
+            if (to == null || to.trim().isEmpty()) {
+                return createErrorResponse("Campo 'to' é obrigatório");
+            }
+            if (value == null || value <= 0) {
+                return createErrorResponse("Campo 'value' deve ser maior que zero");
+            }
+            if (fee == null || fee < 0) {
+                return createErrorResponse("Campo 'fee' deve ser maior ou igual a zero");
+            }
+
+            Transaction tx = new Transaction(from.trim(), to.trim(), value, fee);
+            mempool.add(tx);
+            
+            System.out.println("[Service] Transação recebida: " + tx.toString() + 
+                             " - Mempool size: " + mempool.size());
+
+            //  para 3 para facilitar testes)
+            if (mempool.size() >= 3) {
                 new Thread(this::performMining).start();
             }
 
-            return "SUCESSO: Transacao adicionada.";
+            return createSuccessResponse("Transação adicionada com sucesso", 
+                Map.of(
+                    "transactionId", System.nanoTime(), // ID temporário da transação
+                    "mempoolSize", mempool.size(),
+                    "from", from,
+                    "to", to,
+                    "value", value,
+                    "fee", fee
+                ));
+
         } catch (Exception e) {
-            return "ERRO: Falha ao processar transacao - " + e.getMessage();
+            System.err.println("[Service] Erro ao processar transação: " + e.getMessage());
+            e.printStackTrace();
+            return createErrorResponse("Falha ao processar transação: " + e.getMessage());
         }
     }
     
@@ -69,5 +104,34 @@ public class BlockChainService {
         blockchain.add(newBlock);   
 
         System.out.println("[Service] Bloco minerado com sucesso! ID: " + newBlock.getId());
+    }
+
+
+
+    private String createSuccessResponse(String message, Map<String, Object> data) {
+        try {
+            Map<String, Object> response = Map.of(
+                "success", true,
+                "message", message,
+                "data", data,
+                "timestamp", System.currentTimeMillis()
+            );
+            return JsonUtil.toJson(response);
+        } catch (Exception e) {
+            return "{\"success\":false,\"message\":\"Erro ao criar resposta JSON\"}";
+        }
+    }
+
+    private String createErrorResponse(String message) {
+        try {
+            Map<String, Object> response = Map.of(
+                "success", false,
+                "message", message,
+                "timestamp", System.currentTimeMillis()
+            );
+            return JsonUtil.toJson(response);
+        } catch (Exception e) {
+            return "{\"success\":false,\"message\":\"Erro interno do servidor\"}";
+        }
     }
 }

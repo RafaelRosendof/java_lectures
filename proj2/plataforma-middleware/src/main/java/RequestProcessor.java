@@ -29,7 +29,7 @@ public class RequestProcessor implements Runnable {
             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
             PrintWriter writer = new PrintWriter(output, true)
         ) {
-            // 🔹 Parse HTTP Request
+            //  HTTP Request
             String requestLine = reader.readLine();
             if (requestLine == null) return;
 
@@ -60,10 +60,10 @@ public class RequestProcessor implements Runnable {
             InvocationMessage message = new InvocationMessage(httpMethod, path, headers, body);
             System.out.println("Requisição Recebida: " + message);
 
-            // 🔹 Invoker
+            //  Invoker
             Object result = invoke(message);
 
-            // 🔹 Marshal Response
+            //  Marshal Response
             String httpResponse = marshalResponse(result);
             writer.println(httpResponse);
 
@@ -80,6 +80,178 @@ public class RequestProcessor implements Runnable {
     }
 
     // Invoker
+    private Object invoke(InvocationMessage message) throws Exception {
+        String routeKey = message.getHttpMethod().toUpperCase() + ":" + message.getPath();
+        Method methodToInvoke = routeMap.get(routeKey);
+
+        if (methodToInvoke == null) {
+            throw new Exception("404 Not Found: " + routeKey);
+        }
+
+        String contentType = message.getHeaders().getOrDefault("Content-Type", "text/plain");
+        
+        // Determina os argumentos baseado no Content-Type e nos parâmetros do método
+        Object[] args = determineMethodArguments(methodToInvoke, message, contentType);
+        
+        System.out.println("Invocando método: " + methodToInvoke.getName() + " com " + args.length + " argumentos");
+        
+        return methodToInvoke.invoke(serviceImplementation, args);
+    }
+
+
+    private Object[] determineMethodArguments(Method method, InvocationMessage message, String contentType) throws Exception {
+        Class<?>[] paramTypes = method.getParameterTypes();
+        
+        // Se o método não tem parâmetros (como GET /blocks)
+        if (paramTypes.length == 0) {
+            return new Object[0];
+        }
+        
+        // Se o método tem um parâmetro String (como nosso addTransaction modificado)
+        if (paramTypes.length == 1 && paramTypes[0] == String.class) {
+            return new Object[]{message.getBody()};
+        }
+        
+        // Para múltiplos parâmetros, tenta diferentes estratégias
+        if (contentType.contains("application/json")) {
+            return parseJsonArguments(method, message.getBody());
+        } else {
+            return parseTextArguments(method, message.getBody());
+        }
+    }
+
+    // Parse argumentos do JSON
+    private Object[] parseJsonArguments(Method method, String body) throws Exception {
+        try {
+            Map<String, Object> params = JsonUtil.parseJson(body);
+            Class<?>[] paramTypes = method.getParameterTypes();
+            Object[] args = new Object[paramTypes.length];
+
+            // Tenta usar nomes dos parâmetros se disponível (precisa -parameters no javac)
+            java.lang.reflect.Parameter[] parameters = method.getParameters();
+            
+            for (int i = 0; i < paramTypes.length; i++) {
+                String paramName = parameters[i].getName();
+                Object value = params.get(paramName);
+                
+                // Se o nome do parâmetro é genérico (arg0, arg1), tenta estratégias alternativas
+                if (value == null && paramName.startsWith("arg")) {
+                    System.out.println("[RequestProcessor] Parâmetro genérico detectado: " + paramName);
+                    // Poderia tentar mapear por posição ou outros critérios aqui
+                    throw new Exception("Não foi possível mapear parâmetros JSON. Parâmetro '" + paramName + "' não encontrado no JSON");
+                }
+
+                if (value == null) {
+                    throw new Exception("Parâmetro obrigatório não encontrado: " + paramName);
+                }
+
+                args[i] = castValue(paramTypes[i], value);
+            }
+
+            return args;
+        } catch (Exception e) {
+            System.err.println("[RequestProcessor] Erro no parse JSON: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    // Parse argumentos do texto (formato: valor1;valor2;valor3;valor4)
+    private Object[] parseTextArguments(Method method, String body) throws Exception {
+        String[] parts = body.split(";");
+        Class<?>[] paramTypes = method.getParameterTypes();
+        
+        if (parts.length != paramTypes.length) {
+            throw new Exception("Número de parâmetros não confere. Esperado: " + paramTypes.length + ", Recebido: " + parts.length);
+        }
+
+        Object[] args = new Object[paramTypes.length];
+        for (int i = 0; i < paramTypes.length; i++) {
+            args[i] = castValue(paramTypes[i], parts[i].trim());
+        }
+
+        return args;
+    }
+
+    private Object castValue(Class<?> type, Object value) {
+        try {
+            if (type == double.class || type == Double.class) {
+                return Double.parseDouble(value.toString());
+            } else if (type == int.class || type == Integer.class) {
+                return Integer.parseInt(value.toString());
+            } else if (type == long.class || type == Long.class) {
+                return Long.parseLong(value.toString());
+            } else {
+                return value.toString();
+            }
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Erro ao converter valor '" + value + "' para tipo " + type.getSimpleName());
+        }
+    }
+
+    // Marshal Response de sucesso
+    private String marshalResponse(Object result) {
+        try {
+            String responseBody;
+            String contentType;
+            
+            if (result == null) {
+                responseBody = "null";
+                contentType = "text/plain";
+            } else if (result instanceof String) {
+                responseBody = result.toString();
+                contentType = "text/plain";
+            } else {
+                // Para objetos complexos, converte para JSON
+                responseBody = JsonUtil.toJson(Map.of("response", result.toString()));
+                contentType = "application/json";
+            }
+            
+            StringBuilder response = new StringBuilder();
+            response.append("HTTP/1.1 200 OK\r\n");
+            response.append("Content-Type: ").append(contentType).append("\r\n");
+            response.append("Content-Length: ").append(responseBody.getBytes().length).append("\r\n");
+            response.append("Connection: close\r\n");
+            response.append("\r\n");
+            response.append(responseBody);
+            
+            return response.toString();
+        } catch (Exception e) {
+            return marshalErrorResponse("Erro ao serializar resposta: " + e.getMessage());
+        }
+    }
+
+    // Marshal Response de erro
+    private String marshalErrorResponse(String errorMessage) {
+        try {
+            String errorBody = JsonUtil.toJson(Map.of("error", errorMessage));
+            StringBuilder response = new StringBuilder();
+            response.append("HTTP/1.1 500 Internal Server Error\r\n");
+            response.append("Content-Type: application/json\r\n");
+            response.append("Content-Length: ").append(errorBody.getBytes().length).append("\r\n");
+            response.append("Connection: close\r\n");
+            response.append("\r\n");
+            response.append(errorBody);
+            return response.toString();
+        } catch (Exception e) {
+            String simpleError = "{\"error\":\"Erro interno do servidor\"}";
+            return "HTTP/1.1 500 Internal Server Error\r\n" +
+                   "Content-Type: application/json\r\n" +
+                   "Content-Length: " + simpleError.getBytes().length + "\r\n" +
+                   "Connection: close\r\n\r\n" +
+                   simpleError;
+        }
+    }
+
+
+
+
+
+
+
+}
+
+
+    /* 
     private Object invoke(InvocationMessage message) throws Exception {
         String routeKey = message.getHttpMethod().toUpperCase() + ":" + message.getPath();
         Method methodToInvoke = routeMap.get(routeKey);
@@ -106,6 +278,8 @@ public class RequestProcessor implements Runnable {
 
         return methodToInvoke.invoke(serviceImplementation, args);
     }
+
+
 
     private boolean typeMatch(Class<?> type, Object value) {
         if (value == null) return false;
@@ -138,10 +312,9 @@ public class RequestProcessor implements Runnable {
         } catch (Exception e) {
             return "HTTP/1.1 500 ERROR\r\n\r\n{\"error\":\"Erro ao serializar resposta\"}";
         }
-    }
+    } 
 
-}
-
+    */
 
 /*
  * 
