@@ -94,7 +94,7 @@ public class RequestProcessor implements Runnable {
         Object[] args = new Object[paramTypes.length];
 
         for (int i = 0; i < paramTypes.length; i++) {
-            String paramName = methodToInvoke.getParameters()[i].getName(); // precisa -parameters no javac
+            String paramName = methodToInvoke.getParameters()[i].getName(); // precisa -parameters no javac TCP or UDP
             Object value = params.get(paramName);
 
             if (typeMatch(paramTypes[i], value)) {

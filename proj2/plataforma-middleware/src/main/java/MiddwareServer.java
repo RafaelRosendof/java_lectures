@@ -1,72 +1,34 @@
-/*
- wallet_A_${__threadNum()};wallet_B_${__threadNum()};${__Random(1,500)};${__Random(1,10)}
 
-POST http://localhost:8082/ADD_TRANSACTION
-
-POST data:
-wallet_A_5;wallet_B_5;293;6
-
-
-[no cookies]
-
-
-Marshal: "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"status\":\"sucesso\"}")
-
- */
 
 /*
 
 Check-List:
 Server-Side
 - Server Request Handler  MiddwareServer.start()
-- Message
-- Invoke Register  registerService()
+- Message  RequestProcessor.run()
+- Invoke Register  MiddwareServer.registerService()
 - Invoke  RequestProcessor.invoke()
-- Marshaller (marshall and unmarshal)  RequestProcessor
-- Invocation Data  String[] params = body.split(";");
-- Instance List  serviceImplementation
-- Remote Object   serviceImplementation
+- Marshaller (marshall and unmarshal)  RequestProcessor.marshalResponse
+- Invocation Data  
+- Instance List  onde implementar isso?
+- Remote Object   onde implementar isso?
 
 Client-Side 
-- Client  GatewayProxy e MinerProxy
-- Client Proxy  ja implementado
+- Client  ClientRequestor
+- Client Proxy  GatewayProxy e MinerProxy
 - Requestor  ClientRequestor 
 - Client Request Handler  HttpClient 
-- clientError Remote Error  só falta padronizar 
+- clientError Remote Error  Erro padronizado nas Exceptions
 - Server Request Handler   no cliente é o HttpClient, que lê a resposta.
 - Invoker    equivalente ao RequestProcessor.invoke() no servidor.
 - Marshaller (marshall and unmarshal)  ClientRequestor
 - ServerError: Remote Error    mesmo que clientError: padronizar mensagem de erro do servidor para o cliente.
 
 
-Criar InvocationMessage
-
-Classe simples com: httpMethod, path, headers (map), body.
-
-Isso deixa o parsing no RequestProcessor mais limpo.
-
-Criar InvocationData
-
-Estrutura que guarda os parâmetros já convertidos (ex: from, to, value, fee).
-
-No futuro podemos usar JSON → parse direto para Map<String,Object>.
-
-Padronizar Erros
-
-Criar ErrorResponse (ex: JSON {"error":"mensagem"}).
-
-No RequestProcessor, se um método não for encontrado → retornar 404.
-
-Se exceção durante execução → retornar 500.
-
-Multi-Services
-
-MiddwareServer.registerService() poderia registrar vários serviços (atualmente só um).
-
-O routeMap já suporta múltiplos métodos.
 
 
- */
+
+*/
 
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
