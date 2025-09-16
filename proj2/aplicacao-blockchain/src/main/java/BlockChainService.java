@@ -52,7 +52,7 @@ public class BlockChainService {
                              " - Mempool size: " + mempool.size());
 
             //  para 3 para facilitar testes)
-            if (mempool.size() >= 3) {
+            if (mempool.size() >= 400) {
                 new Thread(this::performMining).start();
             }
 
