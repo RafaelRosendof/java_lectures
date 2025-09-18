@@ -1,6 +1,3 @@
-
-// this gonna be the client proxy 
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -14,7 +11,7 @@ public class HttpClient {
     
     public String sendRequest(String host , int port , String httpRequest , String protocol) throws Exception{
 
-        if (protocol.equals("TCP")){
+        if (protocol.equals("TCP")){ 
             // 
             return sendTCP(host, port, httpRequest);
         }
@@ -26,6 +23,7 @@ public class HttpClient {
         throw new Exception("Protocol not supported");
     }
 
+    // implementa com tcp 
     private String sendTCP(String host, int port, String httpRequest) throws Exception {
         try (Socket socket = new Socket(host, port)) {
             OutputStream out = socket.getOutputStream();
@@ -45,16 +43,17 @@ public class HttpClient {
         }
     }
 
+    // http 3.0 com udp
     private String sendUDP(String host, int port, String httpRequest) throws Exception {
         try (DatagramSocket socket = new DatagramSocket()) {
             InetAddress address = InetAddress.getByName(host);
 
-            // Envia requisição
+            // requisição
             byte[] sendData = httpRequest.getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
             socket.send(sendPacket);
 
-            // Espera resposta
+            // resposta
             byte[] receiveBuffer = new byte[4096];
             DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
             socket.receive(receivePacket);

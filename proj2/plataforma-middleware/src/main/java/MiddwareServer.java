@@ -42,17 +42,21 @@ public class MiddwareServer {
     private final Map<String, Method> routeMap = new HashMap<>();
     private final Map<String, Object> serviceInstances = new HashMap<>();
 
-    // MÉTODO ANTIGO - mantém compatibilidade
+    // função de registro de serviço
+    // método sem pool a remover depois se usa esse primeiro antes de testar o pool
     public void registerService(Object service) {
         this.serviceInstances.put("default", service);
         
+
         Class<?> serviceClass = service.getClass();
         String basePath = "";
+        
+        //valida se a classe tem alguma anotação no RequestMapping
         if (serviceClass.isAnnotationPresent(RequestMapping.class)) {
             RequestMapping classAnnotation = serviceClass.getAnnotation(RequestMapping.class);
             basePath = classAnnotation.path();
         }
-
+        // percorre os métodos anotados da classe onde tem as declarações @
         for (Method method : serviceClass.getDeclaredMethods()) {
             if (method.isAnnotationPresent(RequestMapping.class)) {
                 RequestMapping methodAnnotation = method.getAnnotation(RequestMapping.class);
@@ -96,14 +100,16 @@ public class MiddwareServer {
             ServerSocket serverSocket = new ServerSocket(port);
             System.out.println("Servidor iniciado na porta " + port);
             
+            // loop principal do servidor onde vamos aceitar as conexões 
+            // criar o socket | verificar se o serviço existe | criar o processador de requisições | iniciar a thread
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Nova conexão de " + clientSocket.getInetAddress().getHostAddress());
                 
-                // CORREÇÃO: Pega a primeira instância disponível
+                
                 Object service = serviceInstances.get("default");
                 if (service == null && !servicePools.isEmpty()) {
-                    // Se não tem instância, tenta criar uma do pool
+                    
                     ObjectPool<?> pool = servicePools.values().iterator().next();
                     service = pool.acquire();
                 }
@@ -116,65 +122,3 @@ public class MiddwareServer {
         }
     }
 }
-
-/*
-
-import java.lang.reflect.Method;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
-
-public class MiddwareServer {
-
-    private final Map<String, ObjectPool<?>> servicePools = new HashMap<>();
-    private Object serviceImplementation;
-    private final Map<String, Method> routeMap = new HashMap<>();
-    private final Map<String, Object> serviceInstances = new HashMap<>();
-
-
-    public void registerService(Class<?> serviceClass , int poolSize) throws Exception {
-
-        ObjectPool<?> pool = new ObjectPool<>(serviceClass, poolSize);
-        String serviceName = serviceClass.getSimpleName();
-        servicePools.put(serviceName, pool);
-
-        String basePath = "";
-        if (serviceClass.isAnnotationPresent(RequestMapping.class)) {
-            RequestMapping classAnnotation = serviceClass.getAnnotation(RequestMapping.class);
-            basePath = classAnnotation.path();
-        }
-        
-        for (Method method : serviceClass.getDeclaredMethods()) {
-            if (method.isAnnotationPresent(RequestMapping.class)) {
-                RequestMapping methodAnnotation = method.getAnnotation(RequestMapping.class);
-
-                String fullPath = basePath + methodAnnotation.path();
-                String rKey = methodAnnotation.method().toUpperCase() + ":" + fullPath;
-
-                routeMap.put(rKey, method);
-                System.out.println("Rota Registrada: " + rKey + " -> " + method.getName());
-            }
-        }
-    }
-
-
-
-   public void start(int port){
-    try {
-        ServerSocket serverSocket = new ServerSocket(port);
-        System.out.println("Servidor iniciado na porta " + port);
-        while(true){
-            Socket clientSocket = serverSocket.accept();
-            System.out.println("Nova conexão de " + clientSocket.getInetAddress().getHostAddress());
-            RequestProcessor processor = new RequestProcessor(clientSocket, routeMap, serviceImplementation);
-            new Thread(processor).start();
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-        }
-    }
-
-}
-
- */

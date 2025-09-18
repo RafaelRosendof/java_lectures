@@ -1,5 +1,7 @@
 import java.util.Map;
 
+// proxy para o meu gatway
+
 public class GatewayProxy {
     private final String gatewayHost;
     private final int gatewayPort;
@@ -11,7 +13,7 @@ public class GatewayProxy {
         this.requestor = new ClientRequestor();
     }
 
-    // Método para enviar transação (espelha o serviço no GatewayService)
+    // metodo de adicionar transação
     public String addTransaction(String from, String to, double value, double fee) {
         try {
             Map<String, Object> body = Map.of(
@@ -26,7 +28,7 @@ public class GatewayProxy {
         }
     }
 
-    // Método para recuperar um bloco (espelha o serviço no GatewayService)
+    // metodo de resgatar a blockchain (snapshot)
     public String getBlock() {
         try {
             return requestor.send(gatewayHost, gatewayPort, "GET", "/getBlock", null);

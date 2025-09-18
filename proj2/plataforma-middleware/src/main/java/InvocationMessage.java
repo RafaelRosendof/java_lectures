@@ -1,6 +1,8 @@
 import java.util.HashMap;
 import java.util.Map;
 
+// classe para encapsular a mensagem de invocação HTTP com get e toString
+
 public class InvocationMessage {
     private String httpMethod;
     private String path;

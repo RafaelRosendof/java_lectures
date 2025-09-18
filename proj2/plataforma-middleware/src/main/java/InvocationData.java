@@ -1,5 +1,7 @@
 import java.util.Map;
 
+// classe para encapsular os dados da invocação do método remoto
+
 public class InvocationData {
     private String methodName;
     private Map<String, Object> params;

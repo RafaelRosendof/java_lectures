@@ -1,6 +1,8 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 
+// wrapper para o Jackson
+
 public class JsonUtil {
     private static final ObjectMapper mapper = new ObjectMapper();
 

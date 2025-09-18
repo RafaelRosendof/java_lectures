@@ -1,5 +1,7 @@
 import java.util.Map;
 
+// classsse para encapsular o proxy do minerador com add e get 
+
 public class MinerProxy {
     private final String host;
     private final int port;
@@ -11,10 +13,9 @@ public class MinerProxy {
         this.requestor = new ClientRequestor();
     }
 
+    // cria a transação e envia para o endereço do minerador
     public String addTransaction(String from, String to, double value, double fee) {
         try {
-            //String body = String.join(";", from, to, String.valueOf(value), String.valueOf(fee));
-            //(String host, int port, String method, String path, Map<String, Object> bodyParams)
             Map<String, Object> body = Map.of(
                 "from", from,
                 "to", to,

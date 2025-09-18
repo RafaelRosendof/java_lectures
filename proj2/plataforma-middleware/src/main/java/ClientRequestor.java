@@ -1,5 +1,7 @@
 import java.util.Map;
 
+// classe para criar a requisição HTTP e enviar para o servidor
+// usa o HttpClient para enviar a requisição
 
 public class ClientRequestor {
     private final HttpClient client;
@@ -16,6 +18,7 @@ public class ClientRequestor {
             body = JsonUtil.toJson(bodyParams);
         }
 
+        // monta a requisição
         StringBuilder httpRequest = new StringBuilder();
         httpRequest.append(method.toUpperCase()).append(" ").append(path).append(" HTTP/1.1\r\n");
         httpRequest.append("Host: ").append(host).append(":").append(port).append("\r\n");
@@ -29,6 +32,7 @@ public class ClientRequestor {
             httpRequest.append("\r\n");
         }
 
+        // faz o envio da requisição via sendRequest passando o tipo do protocolo
         String httpResp = client.sendRequest(host, port, httpRequest.toString(), protocol);
 
         int bodyIndex = httpResp.indexOf("\r\n\r\n");
