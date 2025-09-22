@@ -1,4 +1,7 @@
+package proxy;
 import java.util.Map;
+
+import basicPatterns.ClientRequestor;
 
 // classsse para encapsular o proxy do minerador com add e get 
 

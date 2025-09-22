@@ -1,3 +1,4 @@
+package basicPatterns;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +9,8 @@ import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+
+import invoke.InvocationMessage;
 
 public class RequestProcessor implements Runnable {
 

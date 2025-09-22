@@ -1,3 +1,4 @@
+package basicPatterns;
 import java.util.Map;
 
 // classe para criar a requisição HTTP e enviar para o servidor

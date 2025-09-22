@@ -1,4 +1,7 @@
+package proxy;
 import java.util.Map;
+
+import basicPatterns.ClientRequestor;
 
 // proxy para o meu gatway
 

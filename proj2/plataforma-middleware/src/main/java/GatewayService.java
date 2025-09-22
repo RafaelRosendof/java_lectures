@@ -1,3 +1,5 @@
+import proxy.MinerProxy;
+
 public class GatewayService  {
 
     // abstração do serviço de gateway

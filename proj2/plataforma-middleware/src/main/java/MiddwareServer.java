@@ -36,6 +36,8 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+import basicPatterns.RequestProcessor;
+
 public class MiddwareServer {
 
     private final Map<String, ObjectPool<?>> servicePools = new HashMap<>();
