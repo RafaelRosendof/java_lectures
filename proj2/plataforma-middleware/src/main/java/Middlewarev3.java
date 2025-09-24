@@ -4,6 +4,9 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+import lifecycle.PerRequestInst;
+import lifecycle.StaticInstanceManager;
+
 import Indentification.LookUp;
 import Indentification.ObjectRegistry;
 import basicPatterns.RequestProcessor;
@@ -26,7 +29,7 @@ public class Middlewarev3 {
     private String host = "localhost";
     private int port = 8082;
 
-    public Middlewarev2() {
+    public Middlewarev3() {
         this.lookupService = new LookUp(host, port);
         registerService(lookupService);
     }
@@ -141,7 +144,7 @@ public class Middlewarev3 {
                 
             case PER_REQUEST:
                 System.out.println("Usando PER_REQUEST para " + serviceName);
-                return PerRequestInstanceManager.createInstance(serviceClass);
+                return PerRequestInst.createInstance(serviceClass);
                 
             case POOLING:
                 System.out.println("Usando POOLING para " + serviceName);
@@ -150,7 +153,7 @@ public class Middlewarev3 {
                     return pool.acquire();
                 }
                 // Fallback para per-request se pool não existir
-                return PerRequestInstanceManager.createInstance(serviceClass);
+                return PerRequestInst.createInstance(serviceClass);
                 
             default:
                 return StaticInstanceManager.getInstance(serviceClass);
@@ -219,7 +222,7 @@ public class Middlewarev3 {
     public void showLifecycleStats() {
         System.out.println("\n=== LIFECYCLE STATISTICS ===");
         System.out.println("Static Instances: " + StaticInstanceManager.getInstanceCount());
-        System.out.println("Per-Request Counter: " + PerRequestInstanceManager.getRequestCount());
+        System.out.println("Per-Request Counter: " + PerRequestInst.getRequestCount());
         System.out.println("Object Pools: " + servicePools.size());
         
         StaticInstanceManager.showInstances();
