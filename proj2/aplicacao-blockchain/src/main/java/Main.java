@@ -9,8 +9,8 @@ public class Main {
         BlockChainService blockchainService = new BlockChainService();
 
         // 2. Instancia o servidor do middleware
-        MiddwareServer server = new MiddwareServer();
-
+        //MiddwareServer server = new MiddwareServer();
+        Middlewarev2 server = new Middlewarev2();
         // 3. Registra o serviço no servidor
         server.registerService(blockchainService);
 

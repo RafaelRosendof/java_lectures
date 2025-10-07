@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.PriorityBlockingQueue;
 
+import basicPatterns.JsonUtil;
+
 
 
 
@@ -52,7 +54,7 @@ public class BlockChainService {
                              " - Mempool size: " + mempool.size());
 
             //  para 3 para facilitar testes)
-            if (mempool.size() >= 400) {
+            if (mempool.size() >= 3) {
                 new Thread(this::performMining).start();
             }
 

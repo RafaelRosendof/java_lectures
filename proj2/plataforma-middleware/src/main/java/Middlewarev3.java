@@ -10,9 +10,9 @@ import basicPatterns.RequestProcessor;
 
 // Enum para definir estratégias de lifecycle
 enum LifecycleStrategy {
-    STATIC_INSTANCE,    // Singleton com lazy loading
-    PER_REQUEST,        // Nova instância por requisição
-    POOLING            // Pool de objetos (já implementado)
+    STATIC_INSTANCE,    // static com lazing
+    PER_REQUEST,        // nova instância por requisição
+    POOLING            // Pool  
 }
 
 public class Middlewarev3 {
@@ -31,14 +31,9 @@ public class Middlewarev3 {
         registerService(lookupService);
     }
 
-    // Método original - usa STATIC_INSTANCE por padrão
-    public void registerService(Object service) {
-        this.serviceInstances.put("default", service);
-        this.serviceStrategies.put("default", LifecycleStrategy.STATIC_INSTANCE);
-        registerServiceRoutes(service);
-    }
+    
 
-    // NOVO: Método para registrar com estratégia específica
+    //  registra serviço com lifcecycle padrão (STATIC_INSTANCE)
     public void registerService(Object service, LifecycleStrategy strategy) {
         String serviceName = service.getClass().getSimpleName();
         this.serviceInstances.put(serviceName, service);
@@ -48,7 +43,7 @@ public class Middlewarev3 {
         System.out.println("Serviço registrado: " + serviceName + " com estratégia " + strategy);
     }
 
-    // NOVO: Registrar classe com estratégia de lifecycle
+    // registro de classe de serviço
     public void registerServiceClass(Class<?> serviceClass, LifecycleStrategy strategy) throws Exception {
         String serviceName = serviceClass.getName();
         this.serviceStrategies.put(serviceName, strategy);
@@ -104,7 +99,8 @@ public class Middlewarev3 {
         return objectID;
     } 
 
-    // Método com pool (estratégia POOLING)
+    // para os registros pool , o suppresswarning é uma forma de falar com o compilador que a gente sabe o que tá fazendo
+    // aqui eu registro o serviço com pool ou seja crio o pool e registro as rotas
     @SuppressWarnings("unchecked")
     public String registerServiceWithPool(Class<?> serviceClass, int poolSize) throws Exception {
         ObjectPool<Object> pool = new ObjectPool<>(serviceClass, poolSize);
@@ -174,6 +170,8 @@ public class Middlewarev3 {
             return false;
         }
     }
+
+    // loop principal do servidor
 
     public void start(int port) {
         this.port = port;

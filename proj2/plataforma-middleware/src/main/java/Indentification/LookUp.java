@@ -55,44 +55,7 @@ public class LookUp {
         }
     }
 
-    //@RequestMapping(path = "/lookup/interface" , method = "GET")
-    /* 
-    public String lookUpByInterface(String interfaceName){
-        try{
 
-            List<Map<String , Object>> results = registry.getAllObjects().values().stream()
-                .filter(info -> info.getRemoteInterface().getName().equals(interfaceName)) // filtrar por interface
-                .map(info -> {
-                    AbsouleObjectReference ref = AbsouleObjectReference.create(
-                        info.getObjectId(),
-                        info.getRemoteInterface(),
-                        host,
-                        port
-                    );
-                    return Map.of(
-                        "objectID", info.getObjectId(),
-                        "reference", ref.serialize()
-                    );
-                })
-                .collect(Collectors.toList());
-
-            return JsonUtil.toJson(Map.of(
-                "interface", interfaceName,
-                "objects", results,
-                "count", results.size()
-            ));
-
-        }catch (Exception e){
-            e.printStackTrace();
-            return JsonUtil.toJson(Map.of("error", "Erro no lookup: " + e.getMessage()));
-        }
-    
-    }
-        */
-
-    // registrar um novo obj 
-
-    //@RequestMapping(path = "/register" , method = "POST")
     public String registerObj(String className , String interfaceName) throws Exception {
         try{
 
@@ -122,6 +85,6 @@ public class LookUp {
     }
 
 
-    //TODO -> lookup for all
+    
     
 }

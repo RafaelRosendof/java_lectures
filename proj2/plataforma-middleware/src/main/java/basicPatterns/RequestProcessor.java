@@ -123,7 +123,7 @@ public class RequestProcessor implements Runnable {
         }
     }
 
-    // parser para argumentos do JSON
+    // parser para argumentos do JSON para colocar se quero udp ou tcp
     private Object[] parseJsonArguments(Method method, String body) throws Exception {
         try {
             Map<String, Object> params = JsonUtil.parseJson(body);

@@ -38,7 +38,7 @@ public class AbsouleObjectReference implements Serializable {
                 objectId, interfaceName, serverHost, serverPort, protocol);
     }
 
-    // criar refs a partir de string serializada
+    // processo reverso - string para objeto
     public static AbsouleObjectReference deserialize(String serialized){
 
         String[] parts = serialized.split("\\||");
