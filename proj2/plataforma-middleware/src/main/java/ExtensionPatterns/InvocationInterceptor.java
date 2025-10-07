@@ -14,56 +14,6 @@ public interface InvocationInterceptor {
     void onError(InvocationContext context, Exception error);
 }
 
-// InvocationContext.java - Contexto da invocação
-class InvocationContext {
-    private final Object target;           // Objeto alvo
-    private final Method method;           // Método sendo invocado
-    private final Object[] arguments;      // Argumentos
-    private final String clientAddress;    // IP do cliente
-    private final long timestamp;          // Quando foi chamado
-    
-    public InvocationContext(Object target, Method method, Object[] arguments, String clientAddress) {
-        this.target = target;
-        this.method = method;
-        this.arguments = arguments;
-        this.clientAddress = clientAddress;
-        this.timestamp = System.currentTimeMillis();
-    }
-    
-    // Getters
-    public Object getTarget() { return target; }
-    public Method getMethod() { return method; }
-    public Object[] getArguments() { return arguments; }
-    public String getClientAddress() { return clientAddress; }
-    public long getTimestamp() { return timestamp; }
-    
-    public String getMethodName() {
-        return method != null ? method.getName() : "unknown";
-    }
-    
-    @Override
-    public String toString() {
-        return String.format("InvocationContext{method=%s, client=%s, args=%d}", 
-            getMethodName(), clientAddress, arguments != null ? arguments.length : 0);
-    }
-}
-
-// LoggingInterceptor.java - Exemplo: Logging simples
-class LoggingInterceptor implements InvocationInterceptor {
-    
-    @Override
-    public void beforeInvocation(InvocationContext context) {
-        System.out.println("[INTERCEPTOR] ANTES: " + context.getMethodName() + 
-                         " | Cliente: " + context.getClientAddress() +
-                         " | Timestamp: " + context.getTimestamp());
-    }
-    
-    @Override
-    public void afterInvocation(InvocationContext context, Object result) {
-        long duration = System.currentTimeMillis() - context.getTimestamp();
-        System.out.println("[INTERCEPTOR] DEPOIS: " + context.getMethodName() + 
-                         " | Duração: " + duration + 
-
 
 /*
 // InvocationInterceptor.java - Interface do interceptor
