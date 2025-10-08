@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+import ExtensionPatterns.InterceptorChain;
 import invoke.InvocationMessage;
 
 public class RequestProcessor implements Runnable {
@@ -18,10 +19,13 @@ public class RequestProcessor implements Runnable {
     private final Map<String, Method> routeMap;
     private final Object serviceImplementation;
 
-    public RequestProcessor(Socket socket, Map<String, Method> routeMap, Object service) {
+    private final InterceptorChain interceptorChain = new InterceptorChain();
+
+    public RequestProcessor(Socket socket, Map<String, Method> routeMap, Object service , InterceptorChain chain) {
         this.clientSocket = socket;
         this.routeMap = routeMap;
         this.serviceImplementation = service;
+        this.interceptorChain = chain;
     }
 
     @Override
