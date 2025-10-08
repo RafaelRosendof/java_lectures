@@ -1,7 +1,7 @@
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.rmi.server.RemoteObject;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,7 +34,7 @@ public class Middlewarev4 {
     private String host = "localhost";
     private int port = 8082;
 
-    public Middlewarev3() {
+    public Middlewarev4() {
         this.lookupService = new LookUp(host, port);
         registerService(lookupService);
     }
@@ -194,12 +194,12 @@ public class Middlewarev4 {
 
             while(true){
                 
-                Socket clientSockte = serverSocket.accept();
-                System.out.println("Conexão aceita de " + clientSockte.getRemoteSocketAddress());
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Conexão aceita de " + clientSocket.getRemoteSocketAddress());
 
                 Object service = getServiceInstance();
 
-                RequestProcessor processosr = new RequestProcessor(clientSockte, routeMap, service , this.interceptorChain);
+                RequestProcessor processor = new RequestProcessor(clientSocket, routeMap, service , this.interceptorChain);
 
                 new Thread(processor).start();
             }
