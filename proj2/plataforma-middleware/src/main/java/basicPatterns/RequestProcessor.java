@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+import ExtensionPatterns.InterceptorChain;
 import invoke.InvocationMessage;
 
 public class RequestProcessor implements Runnable {
@@ -17,15 +18,20 @@ public class RequestProcessor implements Runnable {
     private final Socket clientSocket;
     private final Map<String, Method> routeMap;
     private final Object serviceImplementation;
+    private final InterceptorChain interceptorChain;
 
-    public RequestProcessor(Socket socket, Map<String, Method> routeMap, Object service) {
+    public RequestProcessor(Socket socket, Map<String, Method> routeMap, Object service, InterceptorChain interceptorChain) {
         this.clientSocket = socket;
         this.routeMap = routeMap;
         this.serviceImplementation = service;
+        this.interceptorChain = interceptorChain;
     }
 
     @Override
     public void run() {
+        InvocationContext context = null;
+        Object result = null;
+
         try (
             InputStream input = clientSocket.getInputStream();
             OutputStream output = clientSocket.getOutputStream();
@@ -60,15 +66,38 @@ public class RequestProcessor implements Runnable {
                 body = new String(bodyChars);
             }
 
+            // encontrar metodo e argumento
+            String routeKey = httpMethod.toUpperCase() + ":" + path;
+            Method methodToInvoke = routeMap.get(routeKey);
+
+            if(methodToInvoke == null) {
+                String httpResponse = marshalErrorResponse("404 Not Found: " + routeKey);
+                writer.println(httpResponse);
+                return;
+            }
+
+            // cria o meu invocation
+            String clientAddress = clientSocket.getRemoteSocketAddress().toString();
+            context = new InvocationContext(clientAddress, httpMethod, path, headers, body, methodToInvoke);
+
+            // invocar cadeia de interceptors
+            interceptorChain.beforeInvocation(context);
+            result = methodToInvoke.invoke(serviceImplementation, args);
+            interceptorChain.afterInvocation(context, result);
+
+
             InvocationMessage message = new InvocationMessage(httpMethod, path, headers, body);
             System.out.println("Requisição Recebida: " + message);
 
-            //  Invoker
-            Object result = invoke(message);
-
-            //  Marshal Response
             String httpResponse = marshalResponse(result);
             writer.println(httpResponse);
+
+            //  Invoker
+            //Object result = invoke(message);
+//
+            ////  Marshal Response
+            //String httpResponse = marshalResponse(result);
+            //writer.println(httpResponse);
 
         } catch (Exception e) {
             System.err.println("Erro ao processar requisição: " + e.getMessage());
