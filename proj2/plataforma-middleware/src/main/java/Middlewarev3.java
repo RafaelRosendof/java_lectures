@@ -1,3 +1,5 @@
+/* 
+
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -229,3 +231,5 @@ public class Middlewarev3 {
             System.out.println("Pool " + name + ": " + pool.size() + " objetos disponíveis"));
     }
 }
+
+*/

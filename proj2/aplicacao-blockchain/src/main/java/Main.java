@@ -10,8 +10,10 @@ public class Main {
 
         // 2. Instancia o servidor do middleware
         //MiddwareServer server = new MiddwareServer();
-        Middlewarev2 server = new Middlewarev2();
+        //Middlewarev2 server = new Middlewarev2();
         // 3. Registra o serviço no servidor
+        Middlewarev4 server = new Middlewarev4();
+
         server.registerService(blockchainService);
 
         // 4. Inicia o servidor do middleware na porta desejada 
