@@ -53,8 +53,8 @@ public class BlockChainService {
             System.out.println("[Service] Transação recebida: " + tx.toString() + 
                              " - Mempool size: " + mempool.size());
 
-            //  para 3 para facilitar testes)
-            if (mempool.size() >= 3) {
+            //  minerando em uma nova thread
+            if (mempool.size() >= 400) {
                 new Thread(this::performMining).start();
             }
 
@@ -81,7 +81,7 @@ public class BlockChainService {
         if (blockchain.isEmpty()) {
             return "A blockchain esta vazia.";
         }
-        // Retorna uma representação simples da blockchain
+        
         StringBuilder sb = new StringBuilder();
         for(Block block : blockchain) {
             sb.append("Block ID: ").append(block.getId())

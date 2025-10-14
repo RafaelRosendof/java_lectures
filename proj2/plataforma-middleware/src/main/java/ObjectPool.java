@@ -1,6 +1,11 @@
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.Queue;
 
+// classe genérica para pool de objetos
+// nessa class é implementado o padrão Object Pool
+// Usado para gerenciar instâncias de serviços com lifecycle POOLING
+// métodos acquire() e release() para pegar e devolver objetos ao pool
+
 public class ObjectPool<T> {
 
     private final Queue<T> pool = new ConcurrentLinkedQueue<>();
