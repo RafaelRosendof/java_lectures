@@ -16,7 +16,7 @@ public class GatewayProxy {
         this.requestor = new ClientRequestor();
     }
 
-    // metodo de adicionar transação
+    // proxy para o método de adicionar transação
     public String addTransaction(String from, String to, double value, double fee) {
         try {
             Map<String, Object> body = Map.of(
@@ -31,7 +31,7 @@ public class GatewayProxy {
         }
     }
 
-    // metodo de resgatar a blockchain (snapshot)
+    // proxy para resgatar a blockchain (snapshot)
     public String getBlock() {
         try {
             return requestor.send(gatewayHost, gatewayPort, "GET", "/getBlock", null);

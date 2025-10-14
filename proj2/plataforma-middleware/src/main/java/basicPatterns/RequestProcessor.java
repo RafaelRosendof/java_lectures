@@ -42,6 +42,7 @@ public class RequestProcessor implements Runnable {
             String requestLine = reader.readLine();
             if (requestLine == null) return;
 
+            // destrincha
             String[] requestParts = requestLine.split(" ");
             String httpMethod = requestParts[0];
             String path = requestParts[1];
@@ -49,6 +50,7 @@ public class RequestProcessor implements Runnable {
             Map<String, String> headers = new HashMap<>();
             int contentLength = 0;
             String line;
+            // lê os headers
             while (!(line = reader.readLine()).isEmpty()) {
                 String[] headerParts = line.split(":", 2);
                 if (headerParts.length == 2) {
@@ -78,6 +80,7 @@ public class RequestProcessor implements Runnable {
 
             // cria o meu invocation
             String clientAddress = clientSocket.getRemoteSocketAddress().toString();
+            // cria o contexto de invocação
             context = new InvocationContext(clientAddress, httpMethod, path, headers, body, methodToInvoke);
 
             // invocar cadeia de interceptors
@@ -85,7 +88,7 @@ public class RequestProcessor implements Runnable {
             result = methodToInvoke.invoke(serviceImplementation, args);
             interceptorChain.afterInvocation(context, result);
 
-
+            // Log da requisição
             InvocationMessage message = new InvocationMessage(httpMethod, path, headers, body);
             System.out.println("Requisição Recebida: " + message);
 

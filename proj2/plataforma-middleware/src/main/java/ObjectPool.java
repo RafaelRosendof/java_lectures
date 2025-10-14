@@ -20,14 +20,7 @@ public class ObjectPool<T> {
         }
     }
 
-    public T acquire2() {
-        T obj = pool.poll(); // Pega um objeto da fila
-        if (obj == null) {
-            // Lógica para lidar com pool vazio (ex: esperar ou criar novo)
-            System.err.println("Pool de objetos vazio!");
-        }
-        return obj;
-    }
+    
 
     public T acquire() {
         T obj = pool.poll(); // Pega um objeto da fila
