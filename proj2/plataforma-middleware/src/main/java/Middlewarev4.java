@@ -1,29 +1,24 @@
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
-
 import java.util.HashMap;
 import java.util.Map;
 
-import ExtensionPatterns.InterceptorChain;
-import ExtensionPatterns.InvocationInterceptor;
-import lifecycle.PerRequestInst;
-import lifecycle.StaticInstanceManager;
-
 import Indentification.LookUp;
 import Indentification.ObjectRegistry;
+import ExtensionPatterns.InterceptorChain;
+import ExtensionPatterns.LoggingInterceptor;
+import ExtensionPatterns.PerformanceInterceptor;
 import basicPatterns.RequestProcessor;
 
+// Enum para definir estratégias de lifecycle
 enum LifecycleStrategy {
-    STATIC_INSTANCE,    // static com lazing
-    PER_REQUEST,        // nova instância por requisição
-    POOLING            // Pool  
+    STATIC_INSTANCE,    // Singleton com lazy loading
+    PER_REQUEST,        // Nova instância por requisição
+    POOLING            // Pool de objetos
 }
 
-
 public class Middlewarev4 {
-
-    private final InterceptorChain interceptorChain = new InterceptorChain();
     
     private final Map<String, ObjectPool<Object>> servicePools = new HashMap<>();
     private final Map<String, Method> routeMap = new HashMap<>();
@@ -31,21 +26,29 @@ public class Middlewarev4 {
     private final Map<String, LifecycleStrategy> serviceStrategies = new HashMap<>();
     private final ObjectRegistry registry = ObjectRegistry.getInstance();
     private final LookUp lookupService;
+    private final InterceptorChain interceptorChain;
     private String host = "localhost";
     private int port = 8082;
 
     public Middlewarev4() {
+        // Inicializa a cadeia de interceptors
+        this.interceptorChain = new InterceptorChain();
+        
+        // Adiciona interceptors padrão
+        this.interceptorChain.addInterceptor(new LoggingInterceptor());
+        this.interceptorChain.addInterceptor(new PerformanceInterceptor());
+        
+        // Registra o serviço de lookup COM A ESTRATÉGIA
         this.lookupService = new LookUp(host, port);
-        registerService(lookupService);
+        registerService(lookupService, LifecycleStrategy.STATIC_INSTANCE);
     }
 
-    
-    public void addInterceptor(InvocationInterceptor interceptor){
-        this.interceptorChain.addInterceptor(interceptor);
+    // Método original - usa STATIC_INSTANCE por padrão
+    public void registerService(Object service) {
+        registerService(service, LifecycleStrategy.STATIC_INSTANCE);
     }
 
-
-    //  registra serviço com lifcecycle padrão (STATIC_INSTANCE)
+    // Método para registrar com estratégia específica
     public void registerService(Object service, LifecycleStrategy strategy) {
         String serviceName = service.getClass().getSimpleName();
         this.serviceInstances.put(serviceName, service);
@@ -55,22 +58,19 @@ public class Middlewarev4 {
         System.out.println("Serviço registrado: " + serviceName + " com estratégia " + strategy);
     }
 
-    // registro de classe de serviço
+    // Registrar classe com estratégia de lifecycle
     public void registerServiceClass(Class<?> serviceClass, LifecycleStrategy strategy) throws Exception {
         String serviceName = serviceClass.getName();
         this.serviceStrategies.put(serviceName, strategy);
         
-        // Para STATIC_INSTANCE, não cria instância ainda (lazy)
         if (strategy == LifecycleStrategy.STATIC_INSTANCE) {
             System.out.println("Classe registrada para STATIC_INSTANCE (lazy): " + serviceName);
         } 
-        // Para PER_REQUEST, também só registra a classe
         else if (strategy == LifecycleStrategy.PER_REQUEST) {
             System.out.println("Classe registrada para PER_REQUEST: " + serviceName);
         }
-        // Para POOLING, cria o pool
         else if (strategy == LifecycleStrategy.POOLING) {
-            registerServiceWithPool(serviceClass, 5); // pool padrão de 5
+            registerServiceWithPool(serviceClass, 5);
         }
         
         // Registra rotas usando uma instância temporária
@@ -104,15 +104,14 @@ public class Middlewarev4 {
     public String registerRemoteService(Object service, Class<?> remoteInterface) {
         String objectID = registry.registerObject(service, remoteInterface);
         this.serviceInstances.put(objectID, service);
-        this.serviceStrategies.put(objectID, LifecycleStrategy.STATIC_INSTANCE); // padrão
+        this.serviceStrategies.put(objectID, LifecycleStrategy.STATIC_INSTANCE);
         registerServiceRoutes(service);
 
         System.out.println("Serviço remoto registrado com ID: " + objectID);
         return objectID;
     } 
 
-    // para os registros pool , o suppresswarning é uma forma de falar com o compilador que a gente sabe o que tá fazendo
-    // aqui eu registro o serviço com pool ou seja crio o pool e registro as rotas
+    // Método com pool (estratégia POOLING)
     @SuppressWarnings("unchecked")
     public String registerServiceWithPool(Class<?> serviceClass, int poolSize) throws Exception {
         ObjectPool<Object> pool = new ObjectPool<>(serviceClass, poolSize);
@@ -133,36 +132,6 @@ public class Middlewarev4 {
         }
 
         return serviceName;
-    }
-
-    // NOVO: Método principal para obter instância baseado na estratégia
-    private Object getServiceInstanceByStrategy(String serviceName, Class<?> serviceClass) throws Exception {
-        LifecycleStrategy strategy = serviceStrategies.get(serviceName);
-        if (strategy == null) {
-            strategy = LifecycleStrategy.STATIC_INSTANCE; // padrão
-        }
-
-        switch (strategy) {
-            case STATIC_INSTANCE:
-                System.out.println("Usando STATIC_INSTANCE para " + serviceName);
-                return StaticInstanceManager.getInstance(serviceClass);
-                
-            case PER_REQUEST:
-                System.out.println("Usando PER_REQUEST para " + serviceName);
-                return PerRequestInst.createInstance(serviceClass);
-                
-            case POOLING:
-                System.out.println("Usando POOLING para " + serviceName);
-                ObjectPool<Object> pool = servicePools.get(serviceName);
-                if (pool != null) {
-                    return pool.acquire();
-                }
-                // Fallback para per-request se pool não existir
-                return PerRequestInst.createInstance(serviceClass);
-                
-            default:
-                return StaticInstanceManager.getInstance(serviceClass);
-        }
     }
 
     // Método auxiliar para verificar implementação de RemoteObject
@@ -186,31 +155,45 @@ public class Middlewarev4 {
     public void start(int port) {
         this.port = port;
 
-        try{
+        try {
             ServerSocket serverSocket = new ServerSocket(port);
             System.out.println("Middleware iniciado na porta " + port);
             System.out.println("Lifecycle Strategies ativas: " + serviceStrategies);
-            System.out.println("Interceptors ativos: " + interceptorChain.size()); // Log de quantos interceptors estão ativos
+            System.out.println("Interceptors ativos: " + interceptorChain.size());
 
-            while(true){
-                
+            while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Conexão aceita de " + clientSocket.getRemoteSocketAddress());
 
                 Object service = getServiceInstance();
-
-                RequestProcessor processor = new RequestProcessor(clientSocket, routeMap, service , this.interceptorChain);
-
+                
+                // PASSA O INTERCEPTOR CHAIN PARA O REQUEST PROCESSOR
+                RequestProcessor processor = new RequestProcessor(
+                    clientSocket, 
+                    routeMap, 
+                    service, 
+                    interceptorChain
+                );
+                
                 new Thread(processor).start();
             }
-        }catch (Exception e){
+            
+        } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Erro no servidor: " + e.getMessage());
+            System.out.println("Erro ao iniciar o servidor: " + e.getMessage());
         }
     }
 
+    // Método auxiliar para obter instância de serviço
     private Object getServiceInstance() {
         Object service = serviceInstances.get("default");
+        
+        if (service == null) {
+            // Tenta pegar do primeiro serviço registrado
+            if (!serviceInstances.isEmpty()) {
+                service = serviceInstances.values().iterator().next();
+            }
+        }
         
         if (service == null && !servicePools.isEmpty()) {
             ObjectPool<Object> pool = servicePools.values().iterator().next();
@@ -225,17 +208,18 @@ public class Middlewarev4 {
         this.port = port;
     }
 
-    // Método para mostrar estatísticas dos lifecycles
-    public void showLifecycleStats() {
-        System.out.println("\n=== LIFECYCLE STATISTICS ===");
-        System.out.println("Static Instances: " + StaticInstanceManager.getInstanceCount());
-        System.out.println("Per-Request Counter: " + PerRequestInst.getRequestCount());
-        System.out.println("Object Pools: " + servicePools.size());
-        
-        StaticInstanceManager.showInstances();
-        
-        servicePools.forEach((name, pool) -> 
-            System.out.println("Pool " + name + ": " + pool.size() + " objetos disponíveis"));
+    // Método para adicionar interceptor customizado
+    public void addInterceptor(ExtensionPatterns.InvocationInterceptor interceptor) {
+        interceptorChain.addInterceptor(interceptor);
     }
 
+    // Método para mostrar estatísticas
+    public void showStats() {
+        System.out.println("\n=== MIDDLEWARE STATISTICS ===");
+        System.out.println("Registered Objects: " + registry.listObjects().size());
+        System.out.println("Routes: " + routeMap.size());
+        System.out.println("Service Pools: " + servicePools.size());
+        System.out.println("Interceptors: " + interceptorChain.size());
+        System.out.println("Server Address: " + host + ":" + port);
+    }
 }

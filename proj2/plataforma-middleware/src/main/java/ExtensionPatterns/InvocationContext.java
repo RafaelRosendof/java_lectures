@@ -1,8 +1,10 @@
 package ExtensionPatterns;
 
+import java.lang.reflect.Method;
+
 public class InvocationContext {
     private final Object target;           // Objeto alvo
-    private final Method method;           // Método sendo invocado
+    private final Method method;          // Método sendo invocado
     private final Object[] arguments;      // Argumentos
     private final String clientAddress;    // IP do cliente
     private final long timestamp;          // Quando foi chamado
