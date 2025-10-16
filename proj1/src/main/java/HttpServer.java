@@ -21,6 +21,7 @@ public class HttpServer implements ComponentServer {
     public void start(int port, RequestHandler handler) throws Exception {
         serverSocket = new ServerSocket(port);
         threadPool = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+        // espécie de semáforo para limitar o número de threads
         running = true;
         System.out.println("Servidor HTTP (custom) escutando na porta " + port);
 
@@ -43,7 +44,7 @@ public class HttpServer implements ComponentServer {
             BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             OutputStream out = clientSocket.getOutputStream()
         ) {
-            // 1. Ler a linha de requisição (ex: "POST /ADD_TRANSACTION HTTP/1.1")
+            //  linha de requisição (ex: "POST /ADD_TRANSACTION HTTP/1.1")
             String requestLine = reader.readLine();
             if (requestLine == null || requestLine.isEmpty()) {
                 return;
@@ -52,10 +53,10 @@ public class HttpServer implements ComponentServer {
             String method = requestParts[0];
             String path = requestParts[1];
 
-            // Extrair o comando do path (removendo a "/")
+            // extrair o comando do path (removendo a "/")
             String command = path.startsWith("/") ? path.substring(1) : path;
 
-            // 2. Ler os cabeçalhos (headers) até encontrar uma linha em branco
+            //  os cabeçalhos (headers) até encontrar uma linha em branco
             Map<String, String> headers = new HashMap<>();
             String headerLine;
             while ((headerLine = reader.readLine()) != null && !headerLine.isEmpty()) {
@@ -65,7 +66,7 @@ public class HttpServer implements ComponentServer {
                 }
             }
 
-            // 3. Ler o corpo (body) da requisição, se houver
+            // corpo (body) da requisição
             String payload = "";
             if ("POST".equalsIgnoreCase(method)) {
                 if (headers.containsKey("Content-Length")) {
@@ -76,7 +77,7 @@ public class HttpServer implements ComponentServer {
                 }
             }
 
-            // 4. Montar a string no formato que o Gateway espera: "COMMAND|PAYLOAD"
+            // string no formato que o Gateway espera: "COMMAND|PAYLOAD"
             String gatewayRequest = command + "|" + payload;
             
             
@@ -84,13 +85,13 @@ public class HttpServer implements ComponentServer {
             String responsePayload = handler.handle(gatewayRequest);
             byte[] payloadBytes = responsePayload.getBytes("UTF-8");
 
-            // 6. Montar e enviar a resposta HTTP
+            //montar e enviar a resposta HTTP
             String httpResponseHeaders = "HTTP/1.1 200 OK\r\n" +
                                      "Content-Type: text/plain; charset=utf-8\r\n" +
                                      "Content-Length: " + payloadBytes.length + "\r\n" +
                                      "\r\n"; // Linha em branco crucial
 
-        // 3. Escreva os headers e DEPOIS o corpo (payload) separadamente.
+        // os headers e DEPOIS o corpo (payload) separadamente.
         out.write(httpResponseHeaders.getBytes("UTF-8"));
         out.write(payloadBytes);
         out.flush();
@@ -101,7 +102,7 @@ public class HttpServer implements ComponentServer {
             try {
                 clientSocket.close();
             } catch (IOException e) {
-                // Silencioso
+                e.printStackTrace();
             }
         }
     }
@@ -109,7 +110,7 @@ public class HttpServer implements ComponentServer {
     @Override
     public void stop() {
         running = false;
-        // Lógica de shutdown (similar ao seu TCPServer)
+        // mesmo do tcp
         if (threadPool != null) {
             threadPool.shutdown();
         }

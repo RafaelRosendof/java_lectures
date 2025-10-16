@@ -76,10 +76,7 @@ public class TCPServer implements ComponentServer {
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
              PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true)) {
-        //try{
-        //        BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        //        PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
-
+        
                 StringBuilder requestBuilder = new StringBuilder();
                 String line;
 
@@ -87,12 +84,6 @@ public class TCPServer implements ComponentServer {
                     requestBuilder.append(line);
                     break;
                 }
-                //while((line = reader.readLine()) != null){
-                //    String response = handler.handle(line);
-                //    writer.println(response);
-                //    writer.flush();
-                //}
-
 
                 String request = requestBuilder.toString();
                 if (request.length() == 0){

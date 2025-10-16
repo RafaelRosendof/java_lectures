@@ -32,7 +32,7 @@ public class Gateway {
         this.server = CommunicationFactory.createServer(communicationType);
         
         RequestHandler handler = (requestWithSenderInfo) -> {
-            // O request agora pode conter informações do remetente, dependendo da implementação do servidor
+            System.out.println("Gateway recebeu: " + requestWithSenderInfo);
             String[] parts = requestWithSenderInfo.split("\\|");
             String command = parts[0];
             String payload = (parts.length > 1) ? parts[1] : "";
@@ -59,13 +59,13 @@ public class Gateway {
         String jmeterErrorResponse = "ERRO_GATEWAY: SERVICO_INDISPONIVEL";
         try {
             targetComponent = switch (command) {
-                // 1. Comando inicial do JMeter vai para o TransactionalProcessor.
+                
                 case "ADD_TRANSACTION" -> findAvailableComponentRoundRobin(ComponentType.TRANSACTION_PROCESSOR);
             
-                // 2. Novo comando do TransactionalProcessor vai para o Miner.
+                
                 case "ROUTE_TO_MINER" -> findAvailableComponentRoundRobin(ComponentType.MINER);
                 
-                // Comandos de debug/consulta continuam indo para o Miner.
+                
                 case "GET_BLOCKCHAIN" -> findAvailableComponentRoundRobin(ComponentType.MINER);
                 
                 default -> null;
@@ -79,7 +79,6 @@ public class Gateway {
             // A requisição para o Miner deve ser o comando original "ADD_TRANSACTION"
             String internalRequest;
             if ("ROUTE_TO_MINER".equals(command)) {
-                // O Miner espera "ADD_TRANSACTION", não "ROUTE_TO_MINER". Nós traduzimos de volta.
                 internalRequest = "ADD_TRANSACTION|" + payload;
             } else {
                 internalRequest = command + "|" + payload;
@@ -205,198 +204,3 @@ public class Gateway {
 
 
 }
-
-
-/*
-
-    private String routeRequest(String command, String payload) {
-        ComponentInfo targetComponent = null;
-        String jmeterErrorResponse = "ERRO_GATEWAY: SERVICO_INDISPONIVEL";
-        try {
-            targetComponent = switch (command) {
-                //case "ADD_TRANSACTION", "GET_MEMPOOL" -> findAvailableComponentRoundRobin(ComponentType.MINER);
-                case "ADD_TRANSACTION", "GET_MEMPOOL" -> findAvailableComponentRoundRobin(ComponentType.TRANSACTION_PROCESSOR);
-                case "MINE_BLOCK", "GET_BLOCK", "GET_BLOCKCHAIN", "ROUTE_TO_MINER" -> findAvailableComponentRoundRobin(ComponentType.MINER);
-                //case "ROUTE_TO_MINER" -> findAvailableComponentRoundRobin(ComponentType.MINER);
-                default -> null;
-            };
-
-            if (targetComponent == null) {
-                System.err.println("[Gateway] Nenhum componente disponível para o comando " + command);
-                return jmeterErrorResponse;
-            }
-
-            System.out.printf("[Gateway] Roteando '%s' para %s\n", command, targetComponent);
-
-            int timeout = 10000;
-            
-            
-            String internalRequest = command + "|" + payload;
-            
-            return sendWithTimeout(targetComponent, internalRequest, timeout);
-            
-
-        } catch (Exception e) {
-            System.err.println("[Gateway] Erro de comunicação ao rotear '" + command + "' para " + targetComponent + ": " + e.getMessage());
-            return jmeterErrorResponse;
-        }
-    }
-
-
-            
-            switch (command) {
-                case "ADD_TRANSACTION":
-                case "GET_MEMPOOL":
-                    //targetComponent = findAvailableComponent(ComponentType.TRANSACTION_PROCESSOR);    
-                    targetComponent = findAvailableComponentRoundRobin(ComponentType.TRANSACTION_PROCESSOR);
-                    break;
-                case "MINE_BLOCK":
-                case "GET_BLOCK": 
-                case "GET_BLOCKCHAIN":
-                    //targetComponent = findAvailableComponent(ComponentType.MINER);
-                    targetComponent = findAvailableComponentRoundRobin(ComponentType.MINER);
-                    break;
-                default:
-                    return "ERRO: Comando desconhecido no Gateway.";
-            }
-            
-
-   private ComponentInfo findAvailableComponent(ComponentType type) {
-        // Lógica simples: pega o primeiro que encontrar.
-        // 
-        return serviceRegistry.values().stream()
-                .filter(c -> c.getType() == type)
-                .findFirst()
-                .orElse(null);
-    }
-
-
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-public class Gateway {
-    private final int port;
-    private final CommunicationType communicationType;
-    //private final ConcurrentLinkedQueue<Transaction> mempool = new ConcurrentLinkedQueue<>();
-    //private final Block blockchain = new Block();
-    private ComponentServer server;
-
-    public Gateway(int port, CommunicationType type) {
-        this.port = port;
-        this.communicationType = type;
-    }
-
-    public void start() throws Exception {
-        
-        this.server = CommunicationFactory.createServer(communicationType);
-        
-        // O RequestHandler contém toda a lógica de negócio que antes estava no handleClient
-        RequestHandler handler = (request) -> {
-            System.out.println("Gateway recebeu: " + request);
-            String[] parts = request.split("\\|", 2);
-            String command = parts[0];
-            String payload = (parts.length > 1) ? parts[1] : "";
-
-            switch (command) {
-                case "ADD_TRANSACTION":
-                    //return handleAddTransaction(payload);
-                    return sendAddToTransaction(request);
-                case "GET_BLOCK":
-                    //return handleGetBlock();
-                    return sendToGetBlock(request);
-                case "MINE_BLOCK":
-                    //return handleMineBlock();
-                    return sendGetToMiner(request);
-                case "GET_MEMPOOL":
-                    //return printBlockChain(mempool);
-                    return sendToGetMempool(request);
-                default:
-                    return "ERRO: Comando desconhecido.";
-            }
-        };
-
-        // Inicia o servidor (UDP ou outro) com a lógica de handling
-        server.start(port, handler);
-    }
-
-    // Métodos para encaminhar as requisições aos componentes apropriados Miner e TransactionProcessor
-
-    public void sendToGetBlock(String request) {
-        
-    }
-
-
-    public void sendAddToTransaction(String request) {
-        
-    }
-
-    public void sendGetToMiner(String request) {
-        
-    }
-
-    public void sendToGetMempool(String request) {
-        
-    }
-
-
-
-
-    // esses métodos aqui não devem ficar aqui, deixarei aqui só de backup 
-
-    private String handleAddTransaction(String jsonPayload) {
-        try {
-
-            String[] partsBody = jsonPayload.replace("{", "").replace("}", "").replace("\"", "").split(",");
-            String from = partsBody[0].split(":")[1].trim();
-            String to = partsBody[1].split(":")[1].trim();
-            double value = Double.parseDouble(partsBody[2].split(":")[1].trim());
-            double fee = Double.parseDouble(partsBody[3].split(":")[1].trim());
-
-            Transaction txData = new Transaction(from, to, value, fee);
-            mempool.add(txData);
-            
-            System.out.println("Nova transação recebida: " + txData);
-            return "SUCESSO: Transação adicionada.";
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "ERRO: Formato da transação inválido.";
-        }
-    }
-
-
-    private String printBlockChain(ConcurrentLinkedQueue<Transaction> mempool) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Mempool atual:\n");
-        for (Transaction tx : mempool) {
-            sb.append(tx).append("\n");
-        }
-        return sb.toString();
-    }
-
-    private String handleGetBlock() {
-        String result = blockchain.printBlockChain(mempool);
-        System.out.println("Bloco atual solicitado.");
-        return "Bloco atual:\n" + result;
-    }
-
-    private String handleMineBlock() {
-        String mined = blockchain.mineBlock(mempool);
-        System.out.println("Bloco minerado solicitado.");
-        return "Bloco minerado:\n" + mined;
-    }
-    
-    public void stop() {
-        if (server != null) {
-            server.stop();
-        }
-    }
-
-    public static void main(String[] args) throws Exception {
-        // Para iniciar o Gateway com UDP, basta passar o tipo na construção
-        Gateway gateway = new Gateway(8080, CommunicationType.UDP);
-        gateway.start();
-        
-        System.out.println("Gateway iniciado em modo UDP. Pressione Ctrl+C para parar.");
-    }
-}
- * 
- */

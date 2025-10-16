@@ -38,11 +38,11 @@ public class TCPClient implements ComponentClient {
                 socket.setSoTimeout(timeoutMS);
                 socket.connect(new java.net.InetSocketAddress(host, port), timeoutMS);
 
-                // Configura streams
+                // configura streams
                 writer = new PrintWriter(socket.getOutputStream(), true);
                 reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 
-                // Envia requisição
+                // envia requisição
                 writer.println(request);
                 writer.flush();
 
@@ -65,32 +65,32 @@ public class TCPClient implements ComponentClient {
                 
 
             }catch (UnknownHostException e) {
-                lastException = new IOException("Host desconhecido: " + host, e);
-                System.err.printf("[TCPClient] Host desconhecido %s:%d (tentativa %d)\n", host, port, i);
-                break; // Não adianta tentar novamente
+                lastException = new IOException("host desconhecido: " + host, e);
+                System.err.printf("[TCPClient] host desconhecido %s:%d (tentativa %d)\n", host, port, i);
+                break; 
                 
             } catch (ConnectException e) {
-                lastException = new IOException("Conexão recusada para " + host + ":" + port, e);
-                System.err.printf("[TCPClient] Conexão recusada %s:%d (tentativa %d)\n", host, port, i);
+                lastException = new IOException("conexão recusada para " + host + ":" + port, e);
+                System.err.printf("[TCPClient] conexão recusada %s:%d (tentativa %d)\n", host, port, i);
                 
             } catch (SocketTimeoutException e) {
-                lastException = new IOException("Timeout na conexão/leitura para " + host + ":" + port, e);
-                System.err.printf("[TCPClient] Timeout %s:%d (tentativa %d)\n", host, port, i);
+                lastException = new IOException("timeout na conexão/leitura para " + host + ":" + port, e);
+                System.err.printf("[TCPClient] timeout %s:%d (tentativa %d)\n", host, port, i);
                 
             } catch (IOException e) {
-                lastException = new IOException("Erro de E/S na tentativa " + i + ": " + e.getMessage(), e);
-                System.err.printf("[TCPClient] Erro E/S %s:%d (tentativa %d): %s\n", host, port, i, e.getMessage());
-                
+                lastException = new IOException("erro de E/S na tentativa " + i + ": " + e.getMessage(), e);
+                System.err.printf("[TCPClient] erro E/S %s:%d (tentativa %d): %s\n", host, port, i, e.getMessage());
+
             } finally {
-                // Fecha recursos na ordem correta
+                // 
                 if (reader != null) {
-                    try { reader.close(); } catch (IOException e) { /* ignore */ }
+                    try { reader.close(); } catch (IOException e) {  }
                 }
                 if (writer != null) {
                     writer.close();
                 }
                 if (socket != null) {
-                    try { socket.close(); } catch (IOException e) { /* ignore */ }
+                    try { socket.close(); } catch (IOException e) { }
                 }
             }
 

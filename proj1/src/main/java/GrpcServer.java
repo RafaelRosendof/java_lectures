@@ -36,7 +36,7 @@ public class GrpcServer implements ComponentServer {
         public void processRequest(        ServiceOuterClass.RequestMessage request, 
                                  StreamObserver<ServiceOuterClass.ResponseMessage> responseObserver) {
             try {
-                // Formato esperado pelo handler: "COMMAND|PAYLOAD"
+                //  "COMMAND|PAYLOAD"
                 String gatewayRequest = request.getCommand() + "|" + request.getPayload();
                 String result = handler.handle(gatewayRequest);
                 

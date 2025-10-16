@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.net.*;
 
-import javax.xml.crypto.Data;
 
 
 public class UDPClient implements ComponentClient {

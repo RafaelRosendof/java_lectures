@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class HttpClient implements ComponentClient {
 
-    // Mantemos a lógica de retry do TCPClient como base, adaptando para HTTP.
+    // lógica de retry do TCPClient como base, adaptando para HTTP.
     private static final int DEFAULT_TIMEOUT = 5000;
     private static final int MAX_RETRIES = 3;
     private static final int RETRY_DELAY = 1000;
@@ -24,13 +24,13 @@ public class HttpClient implements ComponentClient {
                 OutputStream out = socket.getOutputStream();
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-                // 1. Separar o COMANDO do PAYLOAD
+                // separar o payload
                 String[] parts = request.split("\\|", 2);
                 String command = parts[0];
                 String payload = (parts.length > 1) ? parts[1] : "";
                 byte[] payloadBytes = payload.getBytes("UTF-8");
 
-                // 2. Construir a requisição HTTP manualmente
+                // construir a request 
                 StringBuilder httpRequest = new StringBuilder();
                 httpRequest.append("POST /").append(command).append(" HTTP/1.1\r\n");
                 httpRequest.append("Host: ").append(host).append(":").append(port).append("\r\n");
@@ -39,18 +39,17 @@ public class HttpClient implements ComponentClient {
                 httpRequest.append("Content-Length: ").append(payloadBytes.length).append("\r\n");
                 httpRequest.append("\r\n"); // Linha em branco para separar headers do body
 
-                // 3. Enviar cabeçalhos e corpo
+                // enviar a request
                 out.write(httpRequest.toString().getBytes("UTF-8"));
                 out.write(payloadBytes);
                 out.flush();
 
-                // 4. Ler a resposta do servidor
-                // Ler linha de status (ex: "HTTP/1.1 200 OK") - podemos ignorar por simplicidade
+                
                 String statusLine = in.readLine();
 
-                // Ler headers da resposta até a linha em branco
                 //ADD_TRANSACTION|Wallet_A_${__threadNum()};Wallet_B_${__threadNum()};${__Random(1,500)};${__Random(1,10)}
 
+                // Ler headers
                 int responseContentLength = 0;
                 String headerLine;
                 while ((headerLine = in.readLine()) != null && !headerLine.isEmpty()) {
