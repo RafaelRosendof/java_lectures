@@ -1,0 +1,24 @@
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: ms1
+              uri: lb://MS1
+              predicates:
+                - Path=/ms1/**
+              filters:
+                - StripPrefix=1
+            - id: ms2
+              uri: lb://MVC1IA
+              predicates:
+                - Path=/ms2/**
+              filters:
+                - StripPrefix=1
+            - id: ms3
+              uri: lb://MS3
+              predicates:
+                - Path=/ms3/**
+              filters:
+                - StripPrefix=1
