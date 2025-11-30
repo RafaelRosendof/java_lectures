@@ -1,24 +1,58 @@
+server:
+  port: 8080
+
 spring:
+  application:
+    name: gateway
+  main:
+    web-application-type: reactive
   cloud:
     gateway:
-      server:
-        webflux:
-          routes:
-            - id: ms1
-              uri: lb://MS1
-              predicates:
-                - Path=/ms1/**
-              filters:
-                - StripPrefix=1
-            - id: ms2
-              uri: lb://MVC1IA
-              predicates:
-                - Path=/ms2/**
-              filters:
-                - StripPrefix=1
-            - id: ms3
-              uri: lb://MS3
-              predicates:
-                - Path=/ms3/**
-              filters:
-                - StripPrefix=1
+      routes:
+
+        - id: ms1-route
+          uri: lb://ms1
+          predicates:
+            - Path=/ms1/**
+          filters:
+            - StripPrefix=1
+
+        - id: ms2-route
+          uri: lb://ms2
+          predicates:
+            - Path=/ms2/**
+          filters:
+            - StripPrefix=1
+
+        - id: ms3-route
+          uri: lb://ms3
+          predicates:
+            - Path=/ms3/**
+          filters:
+            - StripPrefix=1
+
+        - id: mcp-local-route
+          uri: lb://mcpServer
+          predicates:
+            - Path=/mcp/**
+          filters:
+            - StripPrefix=1
+
+        - id: mcp-docker-route
+          uri: lb://mcpDocker
+          predicates:
+            - Path=/mcpd/**
+          filters:
+            - StripPrefix=1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG

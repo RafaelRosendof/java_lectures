@@ -1,0 +1,14 @@
+spring:
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4-mini
+    
+    mcp:
+      client:
+        httpclient:
+          sse:
+            yfinance:
+              url: http://localhost:8084/sse

@@ -1,0 +1,12 @@
+# Serviço MS4 (yfinance - Terceiros)
+  ms4-yfinance:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: ms4-yfinance
+    ports:
+      - "8084:8084" # Mapeia a 8084 do PC para a 8084 do Container
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - minha-rede

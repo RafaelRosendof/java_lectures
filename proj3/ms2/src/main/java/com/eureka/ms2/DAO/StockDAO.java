@@ -12,8 +12,5 @@ public interface StockDAO extends JpaRepository<StockEntity, Integer> {
     //List<StockEntity> findAllByNews_id(int news_id);
     StockEntity findByName(String name);
     
-    List<StockEntity> findAllByDate(String date);
-
-    
     List<StockEntity> findAllByName(String symbol);
 }

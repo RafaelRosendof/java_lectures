@@ -4,7 +4,7 @@ import com.ms3.ms3.Service.AiOrchestratorService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/ai")
+@RequestMapping("/ai")
 public class AiController {
 
     private final AiOrchestratorService aiService;
@@ -14,8 +14,8 @@ public class AiController {
     }
 
     // Endpoint que o MS1 vai chamar
-    @PostMapping("/analyze")
-    public String getAnalysis(@RequestBody String prompt) {
-        return aiService.analyzeEconomy(prompt);
+    @GetMapping("/analyze")
+    public String getAnalysis() {
+        return aiService.analyzeEconomy();
     }
 }

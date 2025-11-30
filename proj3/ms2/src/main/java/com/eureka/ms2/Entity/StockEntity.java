@@ -21,33 +21,33 @@ public class StockEntity {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "open_price")
-    private double openPrice;
-
-    @Column(name = "close_price")
-    private double closePrice;
-
-    @Column(name = "high_price")
-    private double highPrice;
-
-    @Column(name = "date")
-    private String date;
-
-    @Column(name = "news_id")
-    //@OneToOne(mappedBy = "news")
-    private int news_id; //adjust here, foreign key to the news id
+    //@Column(name = "open_price")
+    //private double openPrice;
+//
+    //@Column(name = "close_price")
+    //private double closePrice;
+//
+    //@Column(name = "high_price")
+    //private double highPrice;
+//
+    //@Column(name = "date")
+    //private String date;
+//
+    //@Column(name = "news_id")
+    ////@OneToOne(mappedBy = "news")
+    //private int news_id; //adjust here, foreign key to the news id
 
     public StockEntity() {
     }
 
-    public StockEntity(int id, String name, double openPrice, double closePrice, double highPrice, String date, int news_id) {
+    public StockEntity(int id, String name/*double openPrice, double closePrice, double highPrice, String date, int news_id*/) {
         this.id = id;
         this.name = name;
-        this.openPrice = openPrice;
-        this.closePrice = closePrice;
-        this.highPrice = highPrice;
-        this.date = date;
-        this.news_id = news_id;
+        //this.openPrice = openPrice;
+        //this.closePrice = closePrice;
+        //this.highPrice = highPrice;
+        //this.date = date;
+        //this.news_id = news_id;
     }
 
     public int getId() {
@@ -63,49 +63,56 @@ public class StockEntity {
     public void setName(String name) {
         this.name = name;
     }
-
-    public double getOpenPrice() {
-        return openPrice;
-    }
-    public void setOpenPrice(double openPrice) {
-        this.openPrice = openPrice;
-    }
-    public double getClosePrice() {
-        return closePrice;
-    }
-    public void setClosePrice(double closePrice) {
-        this.closePrice = closePrice;
-    }
-    public double getHighPrice() {
-        return highPrice;
-    }
-    public void setHighPrice(double highPrice) {
-        this.highPrice = highPrice;
-    }
-    public String getDate() {
-        return date;
-    }
-    public void setDate(String date) {
-        this.date = date;
-    }
-    public int getNews_id() {
-        return news_id;
-    }
-    public void setNews_id(int news_id) {
-        this.news_id = news_id;
-    }
-
     @Override
     public String toString() {
         return "StockEntity{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", openPrice=" + openPrice +
-                ", closePrice=" + closePrice +
-                ", highPrice=" + highPrice +
-                ", date='" + date + '\'' +
-                ", news_id=" + news_id +
                 '}';
     }
+//
+//    public double getOpenPrice() {
+//        return openPrice;
+//    }
+//    public void setOpenPrice(double openPrice) {
+//        this.openPrice = openPrice;
+//    }
+//    public double getClosePrice() {
+//        return closePrice;
+//    }
+//    public void setClosePrice(double closePrice) {
+//        this.closePrice = closePrice;
+//    }
+//    public double getHighPrice() {
+//        return highPrice;
+//    }
+//    public void setHighPrice(double highPrice) {
+//        this.highPrice = highPrice;
+//    }
+//    public String getDate() {
+//        return date;
+//    }
+//    public void setDate(String date) {
+//        this.date = date;
+//    }
+//    public int getNews_id() {
+//        return news_id;
+//    }
+//    public void setNews_id(int news_id) {
+//        this.news_id = news_id;
+//    }
+//
+//    @Override
+//    public String toString() {
+//        return "StockEntity{" +
+//                "id=" + id +
+//                ", name='" + name + '\'' +
+//                ", openPrice=" + openPrice +
+//                ", closePrice=" + closePrice +
+//                ", highPrice=" + highPrice +
+//                ", date='" + date + '\'' +
+//                ", news_id=" + news_id +
+//                '}';
+//    }
 
 }

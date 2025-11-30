@@ -5,22 +5,28 @@ import org.springframework.web.client.RestClient;
 import org.springframework.beans.factory.annotation.Value;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.micrometer.core.annotation.Timed;
+
 import org.springframework.stereotype.Service;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.URI;
 import java.util.Collections;
-
-
-import java.net.URI;
-//import lombok.Value;
+//import java.util.uri;
 import java.util.Map;
+
 
 @Service
 public class AlphaVantage{
     
-    private final String apiKey = "SUA_KEY_AQUI"; 
+    // value no application.properties
+    @Value("${alphavantage.apikey}")
+    private String apiKey;
+
+    // Colocar aqui a parte do prometheus depois
 
     public String buildApiUrl(String typeOfTime, String symbol, String outputsize) {
         return "https://www.alphavantage.co/query?function=" + typeOfTime + 
@@ -30,6 +36,8 @@ public class AlphaVantage{
                "&datatype=json";
     }
 
+    @Timed(value = "externalApi.getStockHistory", description = "Tempo gasto para buscar histórico de ações na API Alpha Vantage")
+    @CircuitBreaker(name = "externalApi", fallbackMethod = "fallbackCollectData")
     public String getStockHistory(String symbol) {
         String url = buildApiUrl("TIME_SERIES_DAILY", symbol, "compact");
         try {
@@ -78,6 +86,8 @@ public class AlphaVantage{
         return sb.toString();
     }
 
+    @Timed(value = "externalApi.getNews", description = "Tempo gasto para buscar notícias na API Alpha Vantage")
+    @CircuitBreaker(name = "externalApi", fallbackMethod = "fallbackCollectData")
     public String getNews(String symbol) {
         String url = "https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=" + symbol + "&apikey=" + apiKey;
         

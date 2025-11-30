@@ -67,35 +67,35 @@ public class NewsService {
 
     // Other methods for the redis service
 
-    public String createNews(String stock){
+    //public String createNews(String stock){
+//
+    //    // função que vai retornar a notícia já pronta tudo feito ja  
+    //    return newsCollector.processNewsData(stock);
+    //}
 
-        // função que vai retornar a notícia já pronta tudo feito ja  
-        return newsCollector.processNewsData(stock);
-    }
-
-    public String getNewsTop1(){
-
-        String top1 = redisService.getTop2Request().get(0);
-
-        String news1 = createNews(top1);
-
-        System.out.println("News 1: " + news1);
-        
-        return news1;
-
-    }
-
-    public String getNewsTop2(){
-
-        String top2 = redisService.getTop2Request().get(1);
-
-        String news2 = createNews(top2);
-
-        System.out.println("News 1: " + news2);
-        
-        return news2;
-    
-    }
+    //public String getNewsTop1(){
+//
+    //    String top1 = redisService.getTop2Request().get(0);
+//
+    //    String news1 = createNews(top1);
+//
+    //    System.out.println("News 1: " + news1);
+    //    
+    //    return news1;
+//
+    //}
+//
+    //public String getNewsTop2(){
+//
+    //    String top2 = redisService.getTop2Request().get(1);
+//
+    //    String news2 = createNews(top2);
+//
+    //    System.out.println("News 1: " + news2);
+    //    
+    //    return news2;
+    //
+    //}
 
     public String giveBackPrompt(){
         
