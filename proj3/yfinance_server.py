@@ -53,11 +53,11 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
             price = info.get('currentPrice', info.get('regularMarketPrice', 'N/A'))
             company = info.get('longName', symbol)
             
-            result = f"📊 {company} ({symbol})\n"
-            result += f"💰 Current Price: ${price}\n"
-            result += f"📈 Day High: ${info.get('dayHigh', 'N/A')}\n"
-            result += f"📉 Day Low: ${info.get('dayLow', 'N/A')}\n"
-            result += f"📊 Volume: {info.get('volume', 'N/A'):,}"
+            result = f"{company} ({symbol})\n"
+            result += f" Current Price: ${price}\n"
+            result += f" Day High: ${info.get('dayHigh', 'N/A')}\n"
+            result += f" Day Low: ${info.get('dayLow', 'N/A')}\n"
+            result += f" Volume: {info.get('volume', 'N/A'):,}"
             
             return [TextContent(type="text", text=result)]
             
@@ -71,7 +71,7 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
             if hist.empty:
                 return [TextContent(type="text", text=f"No data found for {symbol}")]
             
-            result = f"📈 Historical data for {symbol} ({period}):\n\n"
+            result = f" Historical data for {symbol} ({period}):\n\n"
             for date, row in hist.tail(5).iterrows():
                 result += f"{date.strftime('%Y-%m-%d')}: ${row['Close']:.2f}\n"
             

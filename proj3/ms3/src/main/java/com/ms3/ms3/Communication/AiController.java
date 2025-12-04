@@ -14,8 +14,8 @@ public class AiController {
     }
 
     // Endpoint que o MS1 vai chamar
-    @GetMapping("/analyze")
-    public String getAnalysis() {
-        return aiService.analyzeEconomy();
+    @PostMapping("/analyze")
+    public String getAnalysis(@RequestBody String prompt) {
+        return aiService.analyzeEconomy(prompt);
     }
 }

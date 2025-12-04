@@ -22,19 +22,21 @@ public class OrchestratorController {
         this.dbService = dbService;
     }
 
-    @PostMapping("/processRedis")
+    @GetMapping("/processRedis")
     public void processRedisData() {
         dbService.processRedisData();
     }
 
     @PostMapping("/recordStock")
-    public void recordStock(@RequestBody String stockData) {
+    public String recordStock(@RequestBody String stockData) {
         dbService.recordStock(stockData);
+        return "\nStock "+ stockData + " recorded.\n";
     }
 
-    @PostMapping("/analyze")
+    @GetMapping("/analyze")
     public String analyse(){
         List<String> topStocks = dbService.processRedisData();
+        System.out.println("Top stocks received for analysis: " + topStocks.toString());
         String finalPrompt = aiService.buildSmartPrompt(topStocks.get(0), topStocks);
         String aiResponse = aiService.getAnalysis(finalPrompt);
         return aiResponse;

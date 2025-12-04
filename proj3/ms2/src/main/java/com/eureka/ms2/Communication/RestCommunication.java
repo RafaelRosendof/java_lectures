@@ -45,11 +45,16 @@ public class RestCommunication{
     @RateLimiter(name = "dbRequestLimiter", fallbackMethod = "fallbackRequestStock")
     @Timed(value = "db.stocks.processData", description = "Tempo gasto para salvar stocks no Postgres")
     @GetMapping("/processData")
-    public List<String> processRedis(@RequestParam String param) {
+    public List<String> processRedis() {
         List<String> topRequests = redisService.getTop2Request();
         System.out.println("Top 2 stock requests: " + topRequests.toString());
         stocksService.stopRedis();
         return topRequests;
+    }
+
+    public List<String> fallbackRequestStock(Throwable t) {
+    System.err.println("Entrou no Fallback devido ao erro: " + t.getMessage());
+    return List.of("Fallback Data", "Service Unavailable");
     }
     
 }

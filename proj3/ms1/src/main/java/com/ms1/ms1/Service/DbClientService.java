@@ -29,9 +29,12 @@ public class DbClientService {
 
     @CircuitBreaker(name = "dbService", fallbackMethod = "fallbackSave")
     public List<String> processRedisData(){
-        String MS2_URL = this.MS2_URL + "processData";
+        //String MS2_URL = this.MS2_URL + "processData";
+        String urlFinal = this.MS2_URL.endsWith("/") ? this.MS2_URL + "processData" : this.MS2_URL + "/processData";
         try{
-            List<String> results = restTemplate.getForObject(MS2_URL, List.class);
+            System.out.println("Solicitando processamento de dados Redis no MS2...");
+            List<String> results = restTemplate.getForObject(urlFinal, List.class);
+            System.out.println("Dados processados do Redis no MS2: " + results.toString());
             return results;
         }catch(Exception e){
             System.err.println("Falha ao processar dados Redis no MS2: " + e.getMessage());
