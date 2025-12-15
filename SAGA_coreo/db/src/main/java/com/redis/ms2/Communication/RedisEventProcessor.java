@@ -1,7 +1,5 @@
 package com.redis.ms2.Communication;
 
-import java.util.function.Function;
-import java.util.stream.Stream;
 import java.time.LocalDateTime;
 import java.util.function.Consumer;
 
@@ -11,18 +9,15 @@ import org.springframework.context.annotation.Configuration;
 
 import com.redis.ms2.Service.RedisReactive;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @Configuration
-public class StockProcessor {
-
-    private final RedisReactive redisService;
+public class RedisEventProcessor {
+    
+    private final RedisReactive redisReactive;
     private final StreamBridge streamBridge;
 
-    public StockProcessor(RedisReactive redisService, StreamBridge streamBridge){
-
-        this.redisService = redisService;
+    public RedisEventProcessor(RedisReactive redisReactive, StreamBridge streamBridge){
+        this.redisReactive = redisReactive;
         this.streamBridge = streamBridge;
     }
 
@@ -31,7 +26,7 @@ public class StockProcessor {
         return event -> {
             System.out.println("MS2-Redis: Registrando " + event.getTicker());
             
-            redisService.recordStockRequest(event.getTicker())
+            redisReactive.recordStockRequest(event.getTicker())
                 .doOnSuccess(res -> System.out.println("MS2-Redis: Registrado com sucesso"))
                 .doOnError(err -> System.err.println("MS2-Redis: Erro ao registrar: " + err))
                 .subscribe();
@@ -43,14 +38,14 @@ public class StockProcessor {
         return event -> {
             System.out.println("MS2-Redis: Processando batch...");
             
-            redisService.processRedis()
+            redisReactive.processRedis()
                 .doOnSuccess(result -> {
                     System.out.println("MS2-Redis: Batch processado! Publicando evento...");
                     
                     // Publicar: "Batch pronto!"
                     BatchCompletedEvent completedEvent = new BatchCompletedEvent(
                         event.getEventId(),
-                        "/home/rafael/reativas_p3/top_requests.txt", // modificar aqui 
+                        "/home/rafael/reativas_p3/top_requests.txt",
                         LocalDateTime.now()
                     );
                     
@@ -59,5 +54,4 @@ public class StockProcessor {
                 .subscribe();
         };
     }
-
 }

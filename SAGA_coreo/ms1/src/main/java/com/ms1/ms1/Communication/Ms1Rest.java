@@ -22,28 +22,29 @@ import java.nio.file.Paths;
 @RequestMapping("/api")
 public class Ms1Rest {
 
-    private final SagaOrchestrator sagaOrchestrator;
+    private final SagaEventPublisher sagaEventPublisher;
 
-    public Ms1Rest(SagaOrchestrator sagaOrchestrator) {
-        this.sagaOrchestrator = sagaOrchestrator;
+    public Ms1Rest(SagaEventPublisher sagaEventPublisher) {
+        this.sagaEventPublisher = sagaEventPublisher;
     }
 
     @PostMapping(value = "/stock/{ticker}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<String> registerStock(@PathVariable String ticker) {
         System.out.println("MS1 API: Registrando stock no Redis: " + ticker);
-        sagaOrchestrator.registerStockInRedis(ticker);
+        sagaEventPublisher.publishStockRequested(ticker);
         return Mono.just("Pedido aceito. Processando em background...");
     }
 
     @PostMapping("/admin/stop-redis")
     public Mono<String> stopRedisProcess() {
         System.out.println("MS1 API: Enviando comando STOP ao MS2-Redis");
-        return sagaOrchestrator.sendStopCommand();
+        sagaEventPublisher.stopRedis();
+        return Mono.just("Feito a requisição, processo em backgroung");
     }
 
     @PostMapping("/analysis/start")
     public Mono<String> startAnalysis() {
-        return sagaOrchestrator.startAnalysisSaga()
+        return sagaEventPublisher.requestData()
             .timeout(java.time.Duration.ofSeconds(30))
             .then(Mono.fromCallable(() -> {
                 String outputPath = "/home/rafael/reativas_p3/analysis_report.txt";
