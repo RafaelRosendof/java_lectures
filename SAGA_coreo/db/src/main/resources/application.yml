@@ -1,0 +1,33 @@
+spring:
+  cloud:
+    stream:
+      function:
+        definition: processRedis
+      #default-binder: kafka
+      default-binder: rabbit
+      bindings:
+        processRedis-in-0:
+          destination: ms2-redis-requests
+          group: ms2-redis-group
+          content-type: application/json
+
+        processRedis-out-0:
+          destination: ms2-redis-replies
+          content-type: application/json
+
+      kafka:
+        binder:
+          configuration:
+            spring.json.trusted.packages: "*"
+            spring.json.use.type.headers: true
+
+        bindings:
+          processRedis-in-0:
+            consumer:
+              configuration:
+                spring.json.value.default.type: com.redis.ms2.Communication.RedisCommandDTO
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
