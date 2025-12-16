@@ -1,8 +1,14 @@
 spring:
+  application:
+    name: ms2-postgres
+  
+  json:
+    use:
+      type:
+        headers: false
+
   cloud:
     stream:
-      #default-binder: kafka
-      default-binder: rabbit
       function:
         definition: processStockData
       
@@ -10,19 +16,15 @@ spring:
         binder:
           configuration:
             spring.json.trusted.packages: "*"
-        
+
+      #default-binder: rabbit
+      default-binder: kafka      
       bindings:
+
         processStockData-in-0:
-          destination: ms2-stock-requests
-          group: ms2-group
-          binder: rabbit
+          destination: analysis.requested
+          group: postgres-consumer
           content-type: application/json
-
-        processStockData-out-0:
-          destination: ms2-replies
-          binder: rabbit
-          content-type: application/json
-
 
   rabbitmq:
     host: localhost

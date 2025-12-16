@@ -3,11 +3,12 @@ package com.ms2.ms2.Communication;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class StockCommandDTO {
-    private String sagaId;
-    private String ticker;
+public class ProcessBatchEvent {
+    private String eventId;
+    private LocalDateTime timestamp;
 }

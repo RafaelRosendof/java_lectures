@@ -20,27 +20,14 @@ public class StockProcessor {
     }
 
     @Bean
-        public Function<Flux<StockCommandDTO>, Flux<StockResponseDTO>> processStockData() {
-            return flux -> flux
-                .doOnNext(command -> System.out.println("MS2 RECEBEU: " + command))
-                .flatMap(command -> {
-                    
-                    if ("GET_ANALYSIS".equals(command.getTicker())) {
-                        System.out.println("MS2: PARANDO E PROCESSANDO BATCH...");
-                        return stocksService.writeData()
-                                .map(msg -> new StockResponseDTO(
-                                        command.getSagaId(),
-                                        "BATCH_COMPLETED",
-                                        msg,
-                                        null
-                                ));
-                            
-                    } else {
-                        System.out.println("MS2: Comando ignorado ou processamento padrão: " + command.getTicker());
-                        return Mono.empty(); 
-                    }
-                })
-                .doOnError(err -> System.out.println("ERRO FATAL REDIS PROCESSOR: " + err));
-        }
-
+    public Function<Flux<StockDataCollectedEvent>, Mono<Void>> processStockData() {
+        return flux -> flux.flatMap(event -> {
+            System.out.println("MS2-Postgres: Recebeu arquivo para análise: " + event.getFilePath());
+            return stocksService.writeData(event.getFilePath())
+                    .doOnSuccess(msg -> System.out.println("MS2-Postgres: " + msg))
+                    .doOnError(err -> System.err.println("MS2-Postgres Erro: " + err))
+                    .then();
+        })
+        .then();
+    }
 }

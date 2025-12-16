@@ -11,12 +11,14 @@ import com.ms2.ms2.Entity.Stocks;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.nio.file.Path;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -30,7 +32,7 @@ public class StocksService {
     public StockCollect stockCollect;
     public NewsCollector newsCollector;
 
-    public String path = "/home/rafael/reativas_p3/top_requests.txt";
+    
     public String outputPath = "/home/rafael/reativas_p3/analysis_report.txt";
 
     @Autowired
@@ -93,55 +95,60 @@ public class StocksService {
             return Collections.emptyList();
         }
     }
+    public Mono<String> getAnalysis(String inputFilePath) {
+        
+        return Mono.fromCallable(() -> readFile(inputFilePath))
+            .subscribeOn(Schedulers.boundedElastic())
+            .flatMap(stockNames -> {
+                
+                if (stockNames.size() < 2) {
+                    return Mono.error(new RuntimeException("O arquivo precisa de pelo menos 2 ações. Encontrado: " + stockNames.size()));
+                }
 
-    public Mono<String> getAnalysis(){
-        List<String> stockNames = readFile(path);
-        Mono<List<Stocks>> stocks = stockCollect.collectStockHistory(stockNames.get(0));
-        Mono<List<Stocks>> stocks2 = stockCollect.collectStockHistory(stockNames.get(1));
+                Mono<List<Stocks>> stocks = stockCollect.collectStockHistory(stockNames.get(0));
+                Mono<List<Stocks>> stocks2 = stockCollect.collectStockHistory(stockNames.get(1));
 
+                Mono<String> news1 = newsCollector.getNewsSummary(stockNames.get(0));
+                Mono<String> news2 = newsCollector.getNewsSummary(stockNames.get(1));
 
-        Mono<String> news1 = newsCollector.getNewsSummary(stockNames.get(0));
-        Mono<String> news2 = newsCollector.getNewsSummary(stockNames.get(1));
+                return Mono.zip(stocks, stocks2, news1, news2)
+                    .flatMap(tuple -> {
+                        List<Stocks> stockList1 = tuple.getT1();
+                        List<Stocks> stockList2 = tuple.getT2();
+                        String newsSummary1 = tuple.getT3();
+                        String newsSummary2 = tuple.getT4();
 
-        return Mono.zip(stocks, stocks2, news1, news2)
-            .flatMap(tuple -> {
-                List<Stocks> stockList1 = tuple.getT1();
-                List<Stocks> stockList2 = tuple.getT2();
-                String newsSummary1 = tuple.getT3();
-                String newsSummary2 = tuple.getT4();
+                        StringBuilder analysisReport = new StringBuilder();
+                        analysisReport.append("Análise para ").append(stockNames.get(0)).append(":\n");
+                        analysisReport.append("Total de entradas de ações coletadas: ").append(stockList1.size()).append("\n");
+                        analysisReport.append(newsSummary1).append("\n\n");
 
-                StringBuilder analysisReport = new StringBuilder();
-                analysisReport.append("Análise para ").append(stockNames.get(0)).append(":\n");
-                analysisReport.append("Total de entradas de ações coletadas: ").append(stockList1.size()).append("\n");
-                analysisReport.append(newsSummary1).append("\n\n");
+                        analysisReport.append("Análise para ").append(stockNames.get(1)).append(":\n");
+                        analysisReport.append("Total de entradas de ações coletadas: ").append(stockList2.size()).append("\n");
+                        analysisReport.append(newsSummary2).append("\n");
 
-                analysisReport.append("Análise para ").append(stockNames.get(1)).append(":\n");
-                analysisReport.append("Total de entradas de ações coletadas: ").append(stockList2.size()).append("\n");
-                analysisReport.append(newsSummary2).append("\n");
-
-                return Mono.just(analysisReport.toString());
+                        return Mono.just(analysisReport.toString());
+                    });
             });
     }
-    public Mono<String> writeData() {
-        return getAnalysis().flatMap(analysis -> Mono.fromCallable(() -> {
-            Files.write(Paths.get(outputPath), analysis.getBytes());
-            return "Dados escritos com sucesso em " + outputPath;
-        })).onErrorResume(e -> {
-            System.err.println("Erro ao escrever dados em " + outputPath + ": " + e.getMessage());
-            return Mono.just("Erro ao escrever dados: " + e.getMessage());
-        });
+
+    public Mono<String> writeData(String inputFilePath) {
+        
+        return getAnalysis(inputFilePath)
+            .flatMap(analysis -> Mono.fromCallable(() -> {
+                
+                Path outPath = Paths.get(outputPath);
+                if (outPath.getParent() != null) Files.createDirectories(outPath.getParent());
+
+                Files.write(outPath, analysis.getBytes());
+                return "Dados escritos com sucesso em " + outputPath;
+                
+            }).subscribeOn(Schedulers.boundedElastic()))
+            
+            .onErrorResume(e -> {
+                e.printStackTrace();
+                return Mono.just("Erro ao escrever dados: " + e.getMessage());
+            });
     }
 
 }
-/*
-public Mono<String> writeData(Mono<String> data, String filePath){
-        Mono<String> data = getAnalysis();
-        return Mono.fromCallable(() -> {
-            Files.write(Paths.get(filePath), data.getBytes());
-            return "Dados escritos com sucesso em " + filePath;
-        }).onErrorResume(e -> {
-            System.err.println("Erro ao escrever dados em " + filePath + ": " + e.getMessage());
-            return Mono.just("Erro ao escrever dados: " + e.getMessage());
-        });
-    }
-*/

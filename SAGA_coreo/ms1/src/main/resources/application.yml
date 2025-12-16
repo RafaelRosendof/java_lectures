@@ -1,37 +1,21 @@
 spring:
   cloud:
     stream:
-      #default-binder: kafka
-      default-binder: rabbit
-      
-      function:
-        definition: onStockResponse;onRedisResponse
+      default-binder: kafka
+      #default-binder: rabbit
       
       bindings:
-        stock-command-out:
-          destination: ms2-stock-requests
+        stockRequested-out-0:
+          destination: stock.requested
           content-type: application/json
-
-        redis-command-out:
-          destination: ms2-redis-requests
-          content-type: application/json
-
-        onStockResponse-in-0:
-          destination: ms2-stock-replies
-          group: ms1-saga-group
-          content-type: application/json 
         
-        onRedisResponse-in-0:
-          destination: ms2-redis-replies
-          group: ms1-saga-group
+        processBatch-out-0:
+          destination: batch.process.requested
           content-type: application/json
-
-      kafka:
-        binder:
-          configuration:
-            spring.json.trusted.packages: "*"
-
-
+        
+        getStockNews-out-0:
+          destination: analysis.requested
+          content-type: application/json
 
   rabbitmq:
     host: localhost
